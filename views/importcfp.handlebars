@@ -1,0 +1,39 @@
+
+<input type="file" id="fileInput" />
+<button id="uploadButton">Upload</button>
+
+<script>
+    $(document).ready(function() {
+        $('#uploadButton').click(function() {
+            var fileInput = $('#fileInput')[0];
+            if (fileInput.files.length === 0) {
+                alert('Please select a file.');
+                return;
+            }
+
+            var file = fileInput.files[0];
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                var jsonData = JSON.parse(e.target.result);
+                fetch('http://localhost:8080/upload', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(jsonData)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    var source = $("#json-template").html();
+                    var template = Handlebars.compile(source);
+                    var html = template(data);
+                    $("#output").html(html);
+                })
+                .catch(error => {
+                    $("#output").html("<p>Error sending JSON file to API.</p>");
+                });
+            };
+            reader.readAsText(file);
+        });
+    });
+</script>

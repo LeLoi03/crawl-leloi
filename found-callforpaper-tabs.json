@@ -1,0 +1,16 @@
+[
+  {
+    "keyword": "paper",
+    "htmlElement": "a",
+    "cfpUrl": "https://dis.acm.org/2025/call-for-papers/",
+    "mainPageUrl": "https://dis.acm.org/2025/call-for-papers/",
+    "fullUrl": "https://dis.acm.org/2025/call-for-papers/"
+  },
+  {
+    "keyword": "paper",
+    "htmlElement": "a",
+    "cfpUrl": "https://conf.researchr.org/track/icse-2025/icse-2025-journal-first-papers",
+    "mainPageUrl": "https://conf.researchr.org/track/icse-2025/icse-2025-journal-first-papers",
+    "fullUrl": "https://conf.researchr.org/track/icse-2025/icse-2025-journal-first-papers"
+  }
+]

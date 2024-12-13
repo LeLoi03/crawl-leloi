@@ -1,5 +1,11 @@
 const express = require('express');
+const multer = require('multer');
+const csv = require('csv-parser');
+const fs = require('fs');
+const path = require('path');
 const router = express.Router(); 
+
+const {run} = require('../service/run')
 
 
 // Routing 
@@ -90,6 +96,19 @@ router.get('/look', (req, res) => {
             "Morissa"
         ]
     });
+});
+
+
+router.post('/upload', async (req, res) => {
+    const conferenceData = req.body ; 
+    console.log(conferenceData)
+    await run(conferenceData)
+    res.send({conferenceData})
+});
+
+router.get('/crawl', (req, res) => {
+    res.render('importcfp')
+
 });
 
 module.exports = router;

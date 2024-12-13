@@ -6,7 +6,9 @@ const path = require('path');
 
 // Importing files
 const routes = require('./routes/handlers');
-
+const cors = require('cors');
+const bodyParser = require('body-parser');
+app.use(bodyParser.json());
 
 // Sending static files with Express 
 app.use(express.static('public'));
@@ -37,7 +39,7 @@ const hbs = expbs.create({
 // Express Handlebars Configuration
 app.engine('handlebars', hbs.engine);
 app.set('view engine', 'handlebars');
-
+app.use(cors());
 
 // Configure Routes
 app.use('/', routes);
