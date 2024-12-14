@@ -1,0 +1,1 @@
+[2024-12-13T12:13:10.007Z] Error in batch #1: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent: [500 Internal Server Error] Unable to submit request because the service is temporarily unavailable. - Retrying in 65s.

@@ -1,16 +1,490 @@
 [
   {
+    "conference": "ANT",
     "keyword": "paper",
     "htmlElement": "a",
-    "cfpUrl": "https://dis.acm.org/2025/call-for-papers/",
-    "mainPageUrl": "https://dis.acm.org/2025/call-for-papers/",
-    "fullUrl": "https://dis.acm.org/2025/call-for-papers/"
+    "cfpUrl": "https://cs-conferences.acadiau.ca/ant-25/#paperSubmissions",
+    "mainPageUrl": "https://cs-conferences.acadiau.ca/ant-25/#paperSubmissions",
+    "fullUrl": "https://cs-conferences.acadiau.ca/ant-25/#paperSubmissions"
   },
   {
+    "conference": "ANT",
+    "keyword": "research",
+    "htmlElement": "a",
+    "cfpUrl": "https://www.journals.elsevier.com/transportation-research-part-a-policy-and-practice/",
+    "mainPageUrl": "https://www.sciencedirect.com/unsupported_browser",
+    "fullUrl": "https://www.journals.elsevier.com/transportation-research-part-a-policy-and-practice/"
+  },
+  {
+    "conference": "ANT",
+    "keyword": "research",
+    "htmlElement": "a",
+    "cfpUrl": "https://www.uhasselt.be/en/instituten-en/transportation-research-institute-imob",
+    "mainPageUrl": "https://www.uhasselt.be/en/instituten-en/transportation-research-institute-imob",
+    "fullUrl": "https://www.uhasselt.be/en/instituten-en/transportation-research-institute-imob"
+  },
+  {
+    "conference": "ANT",
     "keyword": "paper",
     "htmlElement": "a",
-    "cfpUrl": "https://conf.researchr.org/track/icse-2025/icse-2025-journal-first-papers",
-    "mainPageUrl": "https://conf.researchr.org/track/icse-2025/icse-2025-journal-first-papers",
-    "fullUrl": "https://conf.researchr.org/track/icse-2025/icse-2025-journal-first-papers"
+    "cfpUrl": "https://cs-conferences.acadiau.ca/edi40-25/#paperSubmissions",
+    "mainPageUrl": "https://cs-conferences.acadiau.ca/edi40-25/#paperSubmissions",
+    "fullUrl": "https://cs-conferences.acadiau.ca/edi40-25/#paperSubmissions"
+  },
+  {
+    "conference": "ANT",
+    "keyword": "paper",
+    "htmlElement": "a",
+    "cfpUrl": "https://cs-conferences.acadiau.ca/ant-25/#paperSubmissions",
+    "mainPageUrl": "https://cs-conferences.acadiau.ca/ant-25/#paperSubmissions",
+    "fullUrl": "https://cs-conferences.acadiau.ca/ant-25/#paperSubmissions"
+  },
+  {
+    "conference": "ANT",
+    "keyword": "research",
+    "htmlElement": "a",
+    "cfpUrl": "https://www.journals.elsevier.com/transportation-research-part-a-policy-and-practice/",
+    "mainPageUrl": "https://www.sciencedirect.com/unsupported_browser",
+    "fullUrl": "https://www.journals.elsevier.com/transportation-research-part-a-policy-and-practice/"
+  },
+  {
+    "conference": "ANT",
+    "keyword": "research",
+    "htmlElement": "a",
+    "cfpUrl": "https://www.uhasselt.be/en/instituten-en/transportation-research-institute-imob",
+    "mainPageUrl": "https://www.uhasselt.be/en/instituten-en/transportation-research-institute-imob",
+    "fullUrl": "https://www.uhasselt.be/en/instituten-en/transportation-research-institute-imob"
+  },
+  {
+    "conference": "ANT",
+    "keyword": "paper",
+    "htmlElement": "a",
+    "cfpUrl": "https://cs-conferences.acadiau.ca/edi40-25/#paperSubmissions",
+    "mainPageUrl": "https://cs-conferences.acadiau.ca/edi40-25/#paperSubmissions",
+    "fullUrl": "https://cs-conferences.acadiau.ca/edi40-25/#paperSubmissions"
+  },
+  {
+    "conference": "SIGCOMM",
+    "keyword": "cfp",
+    "htmlElement": "a",
+    "cfpUrl": "https://conferences.sigcomm.org/sigcomm/2025/cfp/",
+    "mainPageUrl": "https://conferences.sigcomm.org/sigcomm/2025/cfp/",
+    "fullUrl": "https://conferences.sigcomm.org/sigcomm/2025/cfp/"
+  },
+  {
+    "conference": "SENSYS",
+    "keyword": "cfp",
+    "htmlElement": "a",
+    "cfpUrl": "https://sensys.acm.org/2025/cfp.html",
+    "mainPageUrl": "https://sensys.acm.org/2025/cfp.html",
+    "fullUrl": "https://sensys.acm.org/2025/cfp.html"
+  },
+  {
+    "conference": "SENSYS",
+    "keyword": "cfp",
+    "htmlElement": "a",
+    "cfpUrl": "https://sensys.acm.org/2025/cfp.html",
+    "mainPageUrl": "https://sensys.acm.org/2025/cfp.html",
+    "fullUrl": "https://sensys.acm.org/2025/cfp.html"
+  },
+  {
+    "conference": "SIGCOMM",
+    "keyword": "paper",
+    "htmlElement": "a",
+    "cfpUrl": "https://www.caida.org/publications/papers/2012/menlo_report_actual_formatted/",
+    "mainPageUrl": "https://catalog.caida.org/paper/2012_menlo_report_actual_formatted/",
+    "fullUrl": "https://www.caida.org/publications/papers/2012/menlo_report_actual_formatted/"
+  },
+  {
+    "conference": "ANT",
+    "keyword": "paper",
+    "htmlElement": "a",
+    "cfpUrl": "https://cs-conferences.acadiau.ca/ant-25/#paperSubmissions",
+    "mainPageUrl": "https://cs-conferences.acadiau.ca/ant-25/#paperSubmissions",
+    "fullUrl": "https://cs-conferences.acadiau.ca/ant-25/#paperSubmissions"
+  },
+  {
+    "conference": "SENSYS",
+    "keyword": "cfp",
+    "htmlElement": "a",
+    "cfpUrl": "https://sensys.acm.org/2025/cfp.html",
+    "mainPageUrl": "https://sensys.acm.org/2025/cfp.html",
+    "fullUrl": "https://sensys.acm.org/2025/cfp.html"
+  },
+  {
+    "conference": "SENSYS",
+    "keyword": "cfp",
+    "htmlElement": "a",
+    "cfpUrl": "https://sensys.acm.org/2025/cfp.html",
+    "mainPageUrl": "https://sensys.acm.org/2025/cfp.html",
+    "fullUrl": "https://sensys.acm.org/2025/cfp.html"
+  },
+  {
+    "conference": "SIGCOMM",
+    "keyword": "call",
+    "htmlElement": "a",
+    "cfpUrl": "https://www.clocate.com/article/the-non-uniform-distribution-of-user-s-calls-in-time-and-space-heterogeneous-wireless-networks/731",
+    "mainPageUrl": "https://www.clocate.com/article/the-non-uniform-distribution-of-user-s-calls-in-time-and-space-heterogeneous-wireless-networks/731/",
+    "fullUrl": "https://www.clocate.com/article/the-non-uniform-distribution-of-user-s-calls-in-time-and-space-heterogeneous-wireless-networks/731"
+  },
+  {
+    "conference": "ANT",
+    "keyword": "research",
+    "htmlElement": "a",
+    "cfpUrl": "https://www.journals.elsevier.com/transportation-research-part-a-policy-and-practice/",
+    "mainPageUrl": "https://www.sciencedirect.com/unsupported_browser",
+    "fullUrl": "https://www.journals.elsevier.com/transportation-research-part-a-policy-and-practice/"
+  },
+  {
+    "conference": "SIGCOMM",
+    "keyword": "paper",
+    "htmlElement": "a",
+    "cfpUrl": "https://www.acm.org/publications/papers-for-practitioners",
+    "mainPageUrl": "https://www.acm.org/publications/papers-for-practitioners",
+    "fullUrl": "https://www.acm.org/publications/papers-for-practitioners"
+  },
+  {
+    "conference": "KDD",
+    "keyword": "paper",
+    "htmlElement": "a",
+    "cfpUrl": "https://kdd2025.kdd.org/research-track-call-for-papers/",
+    "mainPageUrl": "https://kdd2025.kdd.org/research-track-call-for-papers/",
+    "fullUrl": "https://kdd2025.kdd.org/research-track-call-for-papers/"
+  },
+  {
+    "conference": "KDD",
+    "keyword": "paper",
+    "htmlElement": "a",
+    "cfpUrl": "https://kdd2025.kdd.org/research-track-call-for-papers/#content",
+    "mainPageUrl": "https://kdd2025.kdd.org/research-track-call-for-papers/#content",
+    "fullUrl": "https://kdd2025.kdd.org/research-track-call-for-papers/#content"
+  },
+  {
+    "conference": "KDD",
+    "keyword": "paper",
+    "htmlElement": "a",
+    "cfpUrl": "https://kdd2025.kdd.org/research-track-call-for-papers/",
+    "mainPageUrl": "https://kdd2025.kdd.org/research-track-call-for-papers/",
+    "fullUrl": "https://kdd2025.kdd.org/research-track-call-for-papers/"
+  },
+  {
+    "conference": "ANT",
+    "keyword": "paper",
+    "htmlElement": "a",
+    "cfpUrl": "https://cs-conferences.acadiau.ca/edi40-25/#paperSubmissions",
+    "mainPageUrl": "https://cs-conferences.acadiau.ca/edi40-25/#paperSubmissions",
+    "fullUrl": "https://cs-conferences.acadiau.ca/edi40-25/#paperSubmissions"
+  },
+  {
+    "conference": "SAC",
+    "keyword": "submission",
+    "htmlElement": "a",
+    "cfpUrl": "https://www.sigapp.org/sac/sac2025/submission.php",
+    "mainPageUrl": "https://www.sigapp.org/sac/sac2025/submission.php",
+    "fullUrl": "https://www.sigapp.org/sac/sac2025/submission.php"
+  },
+  {
+    "conference": "SAC",
+    "keyword": "submission",
+    "htmlElement": "a",
+    "cfpUrl": "https://www.sigapp.org/sac/sac2025/submission.php",
+    "mainPageUrl": "https://www.sigapp.org/sac/sac2025/submission.php",
+    "fullUrl": "https://www.sigapp.org/sac/sac2025/submission.php"
+  },
+  {
+    "conference": "SAC",
+    "keyword": "submission",
+    "htmlElement": "a",
+    "cfpUrl": "https://www.sigapp.org/sac/sac2025/submission.php#",
+    "mainPageUrl": "https://www.sigapp.org/sac/sac2025/submission.php#",
+    "fullUrl": "https://www.sigapp.org/sac/sac2025/submission.php#"
+  },
+  {
+    "conference": "SAC",
+    "keyword": "submission",
+    "htmlElement": "a",
+    "cfpUrl": "https://www.sigapp.org/sac/sac2025/submission.php",
+    "mainPageUrl": "https://www.sigapp.org/sac/sac2025/submission.php",
+    "fullUrl": "https://www.sigapp.org/sac/sac2025/submission.php"
+  },
+  {
+    "conference": "SAC",
+    "keyword": "submission",
+    "htmlElement": "a",
+    "cfpUrl": "https://www.sigapp.org/sac/sac2025/submission.php",
+    "mainPageUrl": "https://www.sigapp.org/sac/sac2025/submission.php",
+    "fullUrl": "https://www.sigapp.org/sac/sac2025/submission.php"
+  },
+  {
+    "conference": "SAC",
+    "keyword": "submission",
+    "htmlElement": "a",
+    "cfpUrl": "https://www.sigapp.org/sac/sac2025/submission.php",
+    "mainPageUrl": "https://www.sigapp.org/sac/sac2025/submission.php",
+    "fullUrl": "https://www.sigapp.org/sac/sac2025/submission.php"
+  },
+  {
+    "conference": "SAC",
+    "keyword": "submission",
+    "htmlElement": "a",
+    "cfpUrl": "https://www.sigapp.org/sac/sac2025/submission.php#",
+    "mainPageUrl": "https://www.sigapp.org/sac/sac2025/submission.php#",
+    "fullUrl": "https://www.sigapp.org/sac/sac2025/submission.php#"
+  },
+  {
+    "conference": "SAC",
+    "keyword": "submission",
+    "htmlElement": "a",
+    "cfpUrl": "https://www.sigapp.org/sac/sac2025/submission.php",
+    "mainPageUrl": "https://www.sigapp.org/sac/sac2025/submission.php",
+    "fullUrl": "https://www.sigapp.org/sac/sac2025/submission.php"
+  },
+  {
+    "conference": "SAC",
+    "keyword": "submission",
+    "htmlElement": "a",
+    "cfpUrl": "https://www.sigapp.org/sac/sac2025/submission.php",
+    "mainPageUrl": "https://www.sigapp.org/sac/sac2025/submission.php",
+    "fullUrl": "https://www.sigapp.org/sac/sac2025/submission.php"
+  },
+  {
+    "conference": "SAC",
+    "keyword": "submission",
+    "htmlElement": "a",
+    "cfpUrl": "https://www.sigapp.org/sac/sac2025/submission.php",
+    "mainPageUrl": "https://www.sigapp.org/sac/sac2025/submission.php",
+    "fullUrl": "https://www.sigapp.org/sac/sac2025/submission.php"
+  },
+  {
+    "conference": "SAC",
+    "keyword": "submission",
+    "htmlElement": "a",
+    "cfpUrl": "https://www.sigapp.org/sac/sac2025/submission.php#",
+    "mainPageUrl": "https://www.sigapp.org/sac/sac2025/submission.php#",
+    "fullUrl": "https://www.sigapp.org/sac/sac2025/submission.php#"
+  },
+  {
+    "conference": "SAC",
+    "keyword": "submission",
+    "htmlElement": "a",
+    "cfpUrl": "https://www.sigapp.org/sac/sac2025/submission.php",
+    "mainPageUrl": "https://www.sigapp.org/sac/sac2025/submission.php",
+    "fullUrl": "https://www.sigapp.org/sac/sac2025/submission.php"
+  },
+  {
+    "conference": "SAC",
+    "keyword": "submission",
+    "htmlElement": "a",
+    "cfpUrl": "https://www.sigapp.org/sac/sac2025/submission.php",
+    "mainPageUrl": "https://www.sigapp.org/sac/sac2025/submission.php",
+    "fullUrl": "https://www.sigapp.org/sac/sac2025/submission.php"
+  },
+  {
+    "conference": "SAC",
+    "keyword": "submission",
+    "htmlElement": "a",
+    "cfpUrl": "https://www.sigapp.org/sac/sac2025/submission.php",
+    "mainPageUrl": "https://www.sigapp.org/sac/sac2025/submission.php",
+    "fullUrl": "https://www.sigapp.org/sac/sac2025/submission.php"
+  },
+  {
+    "conference": "SAC",
+    "keyword": "submission",
+    "htmlElement": "a",
+    "cfpUrl": "https://www.sigapp.org/sac/sac2025/submission.php#",
+    "mainPageUrl": "https://www.sigapp.org/sac/sac2025/submission.php#",
+    "fullUrl": "https://www.sigapp.org/sac/sac2025/submission.php#"
+  },
+  {
+    "conference": "SAC",
+    "keyword": "submission",
+    "htmlElement": "a",
+    "cfpUrl": "https://www.sigapp.org/sac/sac2025/submission.php",
+    "mainPageUrl": "https://www.sigapp.org/sac/sac2025/submission.php",
+    "fullUrl": "https://www.sigapp.org/sac/sac2025/submission.php"
+  },
+  {
+    "conference": "SAC",
+    "keyword": "submission",
+    "htmlElement": "a",
+    "cfpUrl": "https://www.sigapp.org/sac/sac2025/submission.php",
+    "mainPageUrl": "https://www.sigapp.org/sac/sac2025/submission.php",
+    "fullUrl": "https://www.sigapp.org/sac/sac2025/submission.php"
+  },
+  {
+    "conference": "SAC",
+    "keyword": "submission",
+    "htmlElement": "a",
+    "cfpUrl": "https://www.sigapp.org/sac/sac2025/submission.php",
+    "mainPageUrl": "https://www.sigapp.org/sac/sac2025/submission.php",
+    "fullUrl": "https://www.sigapp.org/sac/sac2025/submission.php"
+  },
+  {
+    "conference": "SAC",
+    "keyword": "submission",
+    "htmlElement": "a",
+    "cfpUrl": "https://www.sigapp.org/sac/sac2025/submission.php#",
+    "mainPageUrl": "https://www.sigapp.org/sac/sac2025/submission.php#",
+    "fullUrl": "https://www.sigapp.org/sac/sac2025/submission.php#"
+  },
+  {
+    "conference": "SAC",
+    "keyword": "submission",
+    "htmlElement": "a",
+    "cfpUrl": "https://www.sigapp.org/sac/sac2025/submission.php",
+    "mainPageUrl": "https://www.sigapp.org/sac/sac2025/submission.php",
+    "fullUrl": "https://www.sigapp.org/sac/sac2025/submission.php"
+  },
+  {
+    "conference": "SAC",
+    "keyword": "submission",
+    "htmlElement": "a",
+    "cfpUrl": "https://www.sigapp.org/sac/sac2025/submission.php",
+    "mainPageUrl": "https://www.sigapp.org/sac/sac2025/submission.php",
+    "fullUrl": "https://www.sigapp.org/sac/sac2025/submission.php"
+  },
+  {
+    "conference": "SAC",
+    "keyword": "submission",
+    "htmlElement": "a",
+    "cfpUrl": "https://www.sigapp.org/sac/sac2025/submission.php",
+    "mainPageUrl": "https://www.sigapp.org/sac/sac2025/submission.php",
+    "fullUrl": "https://www.sigapp.org/sac/sac2025/submission.php"
+  },
+  {
+    "conference": "SAC",
+    "keyword": "submission",
+    "htmlElement": "a",
+    "cfpUrl": "https://www.sigapp.org/sac/sac2025/submission.php#",
+    "mainPageUrl": "https://www.sigapp.org/sac/sac2025/submission.php#",
+    "fullUrl": "https://www.sigapp.org/sac/sac2025/submission.php#"
+  },
+  {
+    "conference": "SAC",
+    "keyword": "submission",
+    "htmlElement": "a",
+    "cfpUrl": "https://www.sigapp.org/sac/sac2025/submission.php",
+    "mainPageUrl": "https://www.sigapp.org/sac/sac2025/submission.php",
+    "fullUrl": "https://www.sigapp.org/sac/sac2025/submission.php"
+  },
+  {
+    "conference": "SAC",
+    "keyword": "submission",
+    "htmlElement": "a",
+    "cfpUrl": "https://www.sigapp.org/sac/sac2025/submission.php",
+    "mainPageUrl": "https://www.sigapp.org/sac/sac2025/submission.php",
+    "fullUrl": "https://www.sigapp.org/sac/sac2025/submission.php"
+  },
+  {
+    "conference": "SAC",
+    "keyword": "submission",
+    "htmlElement": "a",
+    "cfpUrl": "https://www.sigapp.org/sac/sac2025/submission.php",
+    "mainPageUrl": "https://www.sigapp.org/sac/sac2025/submission.php",
+    "fullUrl": "https://www.sigapp.org/sac/sac2025/submission.php"
+  },
+  {
+    "conference": "SAC",
+    "keyword": "submission",
+    "htmlElement": "a",
+    "cfpUrl": "https://www.sigapp.org/sac/sac2025/submission.php#",
+    "mainPageUrl": "https://www.sigapp.org/sac/sac2025/submission.php#",
+    "fullUrl": "https://www.sigapp.org/sac/sac2025/submission.php#"
+  },
+  {
+    "conference": "SAC",
+    "keyword": "submission",
+    "htmlElement": "a",
+    "cfpUrl": "https://www.sigapp.org/sac/sac2025/submission.php",
+    "mainPageUrl": "https://www.sigapp.org/sac/sac2025/submission.php",
+    "fullUrl": "https://www.sigapp.org/sac/sac2025/submission.php"
+  },
+  {
+    "conference": "SAC",
+    "keyword": "submission",
+    "htmlElement": "a",
+    "cfpUrl": "https://www.sigapp.org/sac/sac2025/submission.php",
+    "mainPageUrl": "https://www.sigapp.org/sac/sac2025/submission.php",
+    "fullUrl": "https://www.sigapp.org/sac/sac2025/submission.php"
+  },
+  {
+    "conference": "SAC",
+    "keyword": "submission",
+    "htmlElement": "a",
+    "cfpUrl": "https://www.sigapp.org/sac/sac2025/submission.php",
+    "mainPageUrl": "https://www.sigapp.org/sac/sac2025/submission.php",
+    "fullUrl": "https://www.sigapp.org/sac/sac2025/submission.php"
+  },
+  {
+    "conference": "SAC",
+    "keyword": "submission",
+    "htmlElement": "a",
+    "cfpUrl": "https://www.sigapp.org/sac/sac2025/submission.php#",
+    "mainPageUrl": "https://www.sigapp.org/sac/sac2025/submission.php#",
+    "fullUrl": "https://www.sigapp.org/sac/sac2025/submission.php#"
+  },
+  {
+    "conference": "SAC",
+    "keyword": "submission",
+    "htmlElement": "a",
+    "cfpUrl": "https://www.sigapp.org/sac/sac2025/submission.php",
+    "mainPageUrl": "https://www.sigapp.org/sac/sac2025/submission.php",
+    "fullUrl": "https://www.sigapp.org/sac/sac2025/submission.php"
+  },
+  {
+    "conference": "SAC",
+    "keyword": "submission",
+    "htmlElement": "a",
+    "cfpUrl": "https://www.sigapp.org/sac/sac2025/submission.php",
+    "mainPageUrl": "https://www.sigapp.org/sac/sac2025/submission.php",
+    "fullUrl": "https://www.sigapp.org/sac/sac2025/submission.php"
+  },
+  {
+    "conference": "SAC",
+    "keyword": "submission",
+    "htmlElement": "a",
+    "cfpUrl": "https://www.sigapp.org/sac/sac2025/submission.php#",
+    "mainPageUrl": "https://www.sigapp.org/sac/sac2025/submission.php#",
+    "fullUrl": "https://www.sigapp.org/sac/sac2025/submission.php#"
+  },
+  {
+    "conference": "SAC",
+    "keyword": "submission",
+    "htmlElement": "a",
+    "cfpUrl": "https://www.sigapp.org/sac/sac2025/submission.php",
+    "mainPageUrl": "https://www.sigapp.org/sac/sac2025/submission.php",
+    "fullUrl": "https://www.sigapp.org/sac/sac2025/submission.php"
+  },
+  {
+    "conference": "FSE",
+    "keyword": "paper",
+    "htmlElement": "a",
+    "cfpUrl": "https://conf.researchr.org/track/fse-2025/fse-2025-research-papers#",
+    "mainPageUrl": "https://conf.researchr.org/track/fse-2025/fse-2025-research-papers#",
+    "fullUrl": "https://conf.researchr.org/track/fse-2025/fse-2025-research-papers#"
+  },
+  {
+    "conference": "FSE",
+    "keyword": "paper",
+    "htmlElement": "a",
+    "cfpUrl": "https://conf.researchr.org/track/fse-2025/fse-2025-research-papers",
+    "mainPageUrl": "https://conf.researchr.org/track/fse-2025/fse-2025-research-papers",
+    "fullUrl": "https://conf.researchr.org/track/fse-2025/fse-2025-research-papers"
+  },
+  {
+    "conference": "FSE",
+    "keyword": "paper",
+    "htmlElement": "a",
+    "cfpUrl": "https://conf.researchr.org/track/fse-2025/fse-2025-research-papers",
+    "mainPageUrl": "https://conf.researchr.org/track/fse-2025/fse-2025-research-papers",
+    "fullUrl": "https://conf.researchr.org/track/fse-2025/fse-2025-research-papers"
+  },
+  {
+    "conference": "FSE",
+    "keyword": "paper",
+    "htmlElement": "a",
+    "cfpUrl": "https://conf.researchr.org/track/fse-2025/fse-2025-research-papers",
+    "mainPageUrl": "https://conf.researchr.org/track/fse-2025/fse-2025-research-papers",
+    "fullUrl": "https://conf.researchr.org/track/fse-2025/fse-2025-research-papers"
   }
 ]

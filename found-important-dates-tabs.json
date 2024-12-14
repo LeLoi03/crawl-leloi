@@ -1,9 +1,66 @@
 [
   {
+    "conference": "ANT",
     "keyword": "date",
     "htmlElement": "a",
-    "impUrl": "https://conf.researchr.org/track/icse-2025/icse-2025-journal-first-papers#important-dates",
-    "mainPageUrl": "https://conf.researchr.org/track/icse-2025/icse-2025-journal-first-papers#important-dates",
-    "fullUrl": "https://conf.researchr.org/track/icse-2025/icse-2025-journal-first-papers#important-dates"
+    "impUrl": "https://www.linkedin.com/feed/update/urn:li:activity:6314915605627707394",
+    "mainPageUrl": "https://www.linkedin.com/feed/update/urn:li:activity:6314915605627707394",
+    "fullUrl": "https://www.linkedin.com/feed/update/urn:li:activity:6314915605627707394"
+  },
+  {
+    "conference": "ANT",
+    "keyword": "date",
+    "htmlElement": "a",
+    "impUrl": "https://www.linkedin.com/feed/update/urn:li:activity:6314915605627707394",
+    "mainPageUrl": "https://www.linkedin.com/feed/update/urn:li:activity:6314915605627707394",
+    "fullUrl": "https://www.linkedin.com/feed/update/urn:li:activity:6314915605627707394"
+  },
+  {
+    "conference": "ANT",
+    "keyword": "date",
+    "htmlElement": "a",
+    "impUrl": "https://www.linkedin.com/feed/update/urn:li:activity:6314915605627707394",
+    "mainPageUrl": "https://www.linkedin.com/feed/update/urn:li:activity:6314915605627707394",
+    "fullUrl": "https://www.linkedin.com/feed/update/urn:li:activity:6314915605627707394"
+  },
+  {
+    "conference": "SIGCOMM",
+    "keyword": "date",
+    "htmlElement": "a",
+    "impUrl": "https://www.acm.org/publications/policies/ethics-and-plagiarism-update",
+    "mainPageUrl": "https://www.acm.org/publications/policies/ethics-and-plagiarism-update",
+    "fullUrl": "https://www.acm.org/publications/policies/ethics-and-plagiarism-update"
+  },
+  {
+    "conference": "FSE",
+    "keyword": "date",
+    "htmlElement": "a",
+    "impUrl": "https://conf.researchr.org/track/fse-2025/fse-2025-research-papers#important-dates",
+    "mainPageUrl": "https://conf.researchr.org/track/fse-2025/fse-2025-research-papers#important-dates",
+    "fullUrl": "https://conf.researchr.org/track/fse-2025/fse-2025-research-papers#important-dates"
+  },
+  {
+    "conference": "FSE",
+    "keyword": "date",
+    "htmlElement": "a",
+    "impUrl": "https://conf.researchr.org/track/fse-2025/fse-2025-research-papers#important-dates",
+    "mainPageUrl": "https://conf.researchr.org/track/fse-2025/fse-2025-research-papers#important-dates",
+    "fullUrl": "https://conf.researchr.org/track/fse-2025/fse-2025-research-papers#important-dates"
+  },
+  {
+    "conference": "FSE",
+    "keyword": "date",
+    "htmlElement": "a",
+    "impUrl": "https://conf.researchr.org/track/fse-2025/fse-2025-research-papers#important-dates",
+    "mainPageUrl": "https://conf.researchr.org/track/fse-2025/fse-2025-research-papers#important-dates",
+    "fullUrl": "https://conf.researchr.org/track/fse-2025/fse-2025-research-papers#important-dates"
+  },
+  {
+    "conference": "FSE",
+    "keyword": "date",
+    "htmlElement": "a",
+    "impUrl": "https://conf.researchr.org/track/fse-2025/fse-2025-research-papers#important-dates",
+    "mainPageUrl": "https://conf.researchr.org/track/fse-2025/fse-2025-research-papers#important-dates",
+    "fullUrl": "https://conf.researchr.org/track/fse-2025/fse-2025-research-papers#important-dates"
   }
 ]

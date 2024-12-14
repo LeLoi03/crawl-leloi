@@ -17,17 +17,7 @@ const EDGE_PATH = 'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge
 const apiKey = "AIzaSyAV319MCiDorKNeNykl68MAzlIJk6YRz3g";
 const genAI = new GoogleGenerativeAI(apiKey);
 
-const systemInstruction = `
-- Always return result exact format as my sample outputs provided, do not return result in json format
-- Always return the final output_50 containing the information of the 50 conferences provided in input_50, without returning any extra or missing conference and ensuring the correct conferences order as provided in input_50
-- When returning results for any conference in output_50, only use the information provided for that conference in input_50 to return result
-- Make sure output_50 returns the correct name, total number and order of conferences as in the list provided in input_50
-`
 
-const model = genAI.getGenerativeModel({
-  model: "gemini-1.5-flash-latest",
-  systemInstruction: systemInstruction,
-});
 
 const generationConfig = {
   temperature: 1,
@@ -37,31 +27,6 @@ const generationConfig = {
   responseMimeType: "text/plain",
 };
 
-const getConferenceList = async (browserContext) => {
-  const baseUrl = `${process.env.PORTAL}?search=&by=${process.env.BY}&source=${process.env.CORE}&sort=aacronym&page=`;
-
-  const totalPages = await getTotalPages(browserContext, baseUrl + "1");
-  const allConferences = [];
-
-  for (let i = 1; i <= totalPages; i++) { 
-    const pageUrl = baseUrl + i;
-    console.log(`${pageUrl}`);
-    // Dùng hàng đợi để giới hạn số tab hoạt động
-    await queue.add(async () => {
-      try {
-        const conferences = await getConferencesOnPage(browserContext, pageUrl);
-        console.log(`Page ${i} processed successfully.`);
-        allConferences.push(...conferences);
-      } catch (error) {
-        console.error(`Error processing page ${i}: ${error.message}`);
-      }
-    });
-  }
-
-  await queue.onIdle(); // Đợi hàng đợi hoàn thành
-  console.log(allConferences.length)
-  return allConferences;
-};
 
 const searchConferenceLinks = async (browserContext, conference) => {
   const maxLinks = 4;
@@ -286,149 +251,6 @@ const traverseNodes = (node) => {
 const removeExtraEmptyLines = (text) => {
   return text.replace(/\n\s*\n\s*\n/g, '\n\n');
 };
-
-const getTotalPages = async (browserContext, url) => {
-  const page = await browserContext.newPage();
-
-  try {
-    const response = await page.goto(url);
-
-    // Kiểm tra mã trạng thái HTTP
-    if (!response || response.status() >= 400) {
-      console.error(`Error loading page: ${url} - Status code: ${response ? response.status() : 'No response'}`);
-      return 1; // Trả về 1 trang nếu không thể tải trang
-    }
-
-    const totalPages = await page.locator("#search > a").evaluateAll((elements) => {
-      let maxPage = 1;
-      elements.forEach((el) => {
-        const pageValue = parseInt(el.textContent.trim(), 10);
-        if (!isNaN(pageValue)) maxPage = Math.max(maxPage, pageValue);
-      });
-      return maxPage;
-    });
-
-    return totalPages;
-  } catch (error) {
-    console.error(`Error during getTotalPages: ${error.message}`);
-    return 1; // Trả về 1 trang nếu có lỗi xảy ra
-  } finally {
-    await page.close();
-  }
-};
-
-// Hàm lấy dữ liệu hội nghị từ một trang của ICORE Conference Portal
-const getConferencesOnPage = async (browserContext, url) => {
-  const page = await browserContext.newPage();
-
-  try {
-    const response = await page.goto(url);
-
-    // Kiểm tra mã trạng thái HTTP
-    if (!response || response.status() >= 400) {
-      console.error(`Error loading page: ${url} - Status code: ${response ? response.status() : 'No response'}`);
-      return []; // Trả về mảng rỗng nếu không thể tải trang
-    }
-
-    // Thu thập dữ liệu từ bảng
-    const data = await page.$$eval("#search > table tr td", (tds) =>
-      tds.map((td) => td.innerText)
-    );
-
-    // Thu thập các thuộc tính `onclick` từ các thẻ <tr>
-    const onclickData = await page.$$eval("#search > table tr", (rows) =>
-      rows
-        .slice(1) // Bỏ qua thẻ <tr> đầu tiên
-        .map((row) => row.getAttribute("onclick"))
-        .filter((attr) => attr) // Lấy các thẻ có `onclick`
-    );
-
-    const conferences = [];
-    for (let i = 0; i < data.length; i += 9) {
-      conferences.push({
-        Title: data[i],
-        Acronym: data[i + 1],
-        Source: data[i + 2],
-        Rank: data[i + 3],
-        Note: data[i + 4],
-        DBLP: data[i + 5],
-        PrimaryFoR: data[i + 6],
-        Comments: data[i + 7],
-        AverageRating: data[i + 8],
-        Details: {}, // Sẽ thu thập thêm thông tin chi tiết
-      });
-    }
-
-    // Duyệt qua từng `onclick` để lấy thông tin chi tiết
-    for (let j = 0; j < onclickData.length; j++) {
-      const onclick = onclickData[j];
-      const match = onclick.match(/navigate\('([^']+)'\)/);
-      if (match && match[1]) {
-        const detailUrl = new URL(match[1], url).href; // Tạo URL đầy đủ
-        console.log(`Fetching details for: ${detailUrl}`);
-        
-        const detailPage = await browserContext.newPage();
-        const detailResponse = await detailPage.goto(detailUrl);
-
-        // Kiểm tra mã trạng thái HTTP
-        if (!detailResponse || detailResponse.status() >= 400) {
-          console.error(`Error loading detail page: ${detailUrl} - Status code: ${detailResponse ? detailResponse.status() : 'No response'}`);
-          continue; // Bỏ qua trang chi tiết nếu gặp lỗi
-        }
-
-        // Thu thập thông tin từ các selector `#detail > div.detail` (bỏ qua các div có class là "comment")
-        const detailElements = await detailPage.$$eval(
-          "#detail > .detail", // Chỉ lấy các div có class là "detail"
-          (divs) =>
-            divs.map((div) => {
-              const rows = div.querySelectorAll(".row");
-              const details = {};
-
-              rows.forEach((row) => {
-                const text = row.innerText.trim();
-                const [key, value] = text.split(":").map((s) => s.trim());
-
-                if (key && value) {
-                  if (key === "Field Of Research") {
-                    // Chỉ lưu "Field Of Research" dưới dạng mảng nếu có nhiều giá trị
-                    if (details[key]) {
-                      details[key].push(value);
-                    } else {
-                      details[key] = [value];
-                    }
-                  } else {
-                    // Các key khác chỉ lưu một giá trị
-                    details[key] = value;
-                  }
-                }
-              });
-              
-              return details; // Trả về thông tin của từng child
-            })
-        );
-
-        // Gộp các phần tử chi tiết vào mỗi hội nghị
-        conferences[j].Details = detailElements;
-
-        await detailPage.close();
-      }
-    }
-
-    // Ghi dữ liệu vào file JSON
-  const outputPath = "./conferences_page_data.json";
-  fs.writeFileSync(outputPath, JSON.stringify(conferences, null, 2), "utf8");
-  console.log(`Data has been saved to ${outputPath}`);
-
-    return conferences;
-  } catch (error) {
-    console.error(`Error during getConferencesOnPage: ${error.message}`);
-    return []; // Trả về mảng rỗng nếu có lỗi xảy ra
-  } finally {
-    await page.close();
-  }
-};
-
-
 
 async function readPromptCSV(filePath) {
   return new Promise((resolve, reject) => {
@@ -879,6 +701,8 @@ const saveBatchToFile = async (batch, batchIndex) => {
     const fileName = `batch_${batchIndex}.txt`;
     const filePath = `./batches/${fileName}`;
 
+    const numConferences = batch.length;
+    console.log(`Batch ${batchIndex} length: ${numConferences}`)
     let fileContent = batch
       .map((entry, index) => `${index + 1}. ${entry.conferenceText}\n\n`)
       .join("");
@@ -886,7 +710,7 @@ const saveBatchToFile = async (batch, batchIndex) => {
     fs.writeFileSync(filePath, fileContent, "utf8");
     console.log(`Batch ${batchIndex} saved successfully to ${filePath}`);
 
-    const { responseText, metaData } = await callGeminiAPI(fileContent, batchIndex);
+    const { responseText, metaData } = await callGeminiAPI(fileContent, batchIndex, numConferences);
 
     // Ghi metaData vào file
     if (metaData) {
@@ -912,7 +736,7 @@ const logErrorToFile = async (message) => {
 const lastRequestTimestampRef = { current: 0 };
 const requestLock = { current: false };
 
-const callGeminiAPI = async (batch, batchIndex) => {
+const callGeminiAPI = async (batch, batchIndex, numConferences) => {
   let retryCount = 0;
   const maxRetries = 6; // Số lần thử lại tối đa
   const delayBetweenRetries = 65000; // Thời gian chờ giữa các lần thử (65 giây)
@@ -959,9 +783,21 @@ const callGeminiAPI = async (batch, batchIndex) => {
         { text: `${outputPart3}` },
         { text: `${inputPart4}` },
         { text: `${outputPart4}` },
-        { text: `input_50: \n${batch}` },
-        { text: `output_50: ` },
+        { text: `input_${numConferences}: \n${batch}` },
+        { text: `output_${numConferences}: ` },
       ];
+      const systemInstruction = `
+      - Always return result exact format as my sample outputs provided, do not return result in json format
+      - Always return the final output_${numConferences} containing the information of ${numConferences} conferences provided in input_${numConferences}, without returning any extra or missing conference and ensuring the correct conferences order as provided in input_${numConferences}
+      - When returning results for any conference in output_${numConferences}, only use the information provided for that conference in input_${numConferences} to return result
+      - Make sure output_${numConferences} returns the correct name, total number and order of conferences as in the list provided in input_${numConferences}
+      `
+
+      const model = genAI.getGenerativeModel({
+        model: "gemini-1.5-flash-latest",
+        systemInstruction: systemInstruction,
+      });
+
 
       const response = await model.generateContent({
         contents: [{ role: "user", parts }],
@@ -1256,21 +1092,11 @@ const writeCSVFile = (filePath, data) => {
   }
 };
 
-// Load conference data from JSON file
-function loadConferenceData(filePath) {
-  try {
-    const data = fs.readFileSync(filePath, 'utf-8');
-    return JSON.parse(data);
-  } catch (error) {
-    console.error('Error reading conference data file:', error);
-    return [];
-  }
-}
 
 const run = async (conferenceData) => {
   const browser = await playwright.chromium.launch({
     executablePath: EDGE_PATH,
-    headless: false,
+    headless: true,
     args: [
       "--disable-notifications",
       "--disable-geolocation",
@@ -1389,27 +1215,6 @@ const run = async (conferenceData) => {
     await browser.close();
   }
 };
-
-
-
-
-// Chạy hàm với dữ liệu giả lập
-// (async () => {
-//   const allBatches = JSON.parse(fs.readFileSync("./allBatches.json", "utf8"));
-//   const allResponses = fs.readFileSync("./allResponses.txt", "utf8");
-//   console.log("Determining main link of all conferences ...");
-//   const mainLinksWithResponses = await determineMainLinksWithResponses(allBatches, allResponses);
-
-//   const evaluateFilePath = './evaluate_test_determine.csv';
-//   // Kiểm tra dữ liệu và xuất ra file CSV
-//   if (mainLinksWithResponses && mainLinksWithResponses.length > 0) {
-//     writeCSVFile(evaluateFilePath, mainLinksWithResponses);
-//   } else {
-//     console.warn("No data available to write to CSV.");
-//   }
-
-//   console.log("All works finished.")
-// })();
 
 module.exports = {
     run

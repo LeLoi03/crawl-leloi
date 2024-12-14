@@ -1,0 +1,26 @@
+[
+  {
+    "Title": "ACM Multimedia",
+    "Acronym": "ACMMM"
+  },
+  {
+    "Title": "International Conference on Ambient Systems, Networks and Technologies",
+    "Acronym": "ANT"
+  },
+  {
+    "Title":"ACM Conference on Embedded Networked Sensor Systems",
+    "Acronym":"SENSYS"
+  },
+  {
+    "Title":"ACM Conference on Applications, Technologies, Architectures, and Protocols for Computer Communication",
+    "Acronym":"SIGCOMM"
+  },
+  {
+    "Title":"ACM Information Technology Education",
+    "Acronym":"SIGITE"
+  },
+  {
+    "Title":"ACM International Conference on Knowledge Discovery and Data Mining",
+    "Acronym":"KDD"
+  }
+]
