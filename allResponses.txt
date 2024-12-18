@@ -1,84 +1,18 @@
-1. Information of FSE_0:
-Conference dates: June 23-27, 2025
-Location: Trondheim, Norway
+1. Information of SIGCOMM_0:
+Conference dates: September 8-11, 2025
+Location: São Francisco Convent, Coimbra, Portugal
+Type: Offline (in-person)
+Call for Poster & Demo submission deadline: April 20, 2025
+Call for Tutorial and Hackathon Proposal submission deadline: February 18, 2025
+Call for Workshop Proposal submission deadline: January 31, 2025
+Main Track CFP Paper submission deadline: January 24, 2025
+Main Track CFP Abstract registration deadline: January 24, 2025
+Topics: Communication Networks, Networked Systems, Computer Networks, Wired and Wireless Technologies, Network Architecture, Network Security, Privacy, Economics
+2. Information of SENSYS_0:
+Conference dates: May 6-9, 2025
+Location: Irvine, USA
 Type: Offline
-Paper registration: September 5, 2024
-Full paper submission: September 12, 2024
-Author response: November 22-26, 2024
-Initial notification: January 14, 2025
-Revised manuscript submissions (major revisions only): February 25, 2025
-Final notification for major revisions: April 1, 2025
-Camera ready: April 24, 2025
-Topics: Software Engineering, Artificial Intelligence, Machine Learning, Software Testing, Software Security, Software Processes
-2. Information of FSE_1:
-Conference dates: June 23-27, 2025
-Location: Clarion Hotel & Congress Trondheim, Trondheim, Norway
-Type: Offline
-Demonstrations Submission deadline: January 13, 2025
-Research Papers Initial notification: January 14, 2025
-Industry Papers Submission deadline: January 15, 2025
-Software Engineering Education Submission deadline: January 15, 2025
-Ideas, Visions and Reflections Submission deadline: January 16, 2025
-Tutorials Submission deadline: February 3, 2025
-Research Papers Camera ready (directly accepted paper): February 11, 2025
-Student Research Competition Submission deadline: February 14, 2025
-Topics: Software Engineering, Research Papers, Industry Papers, Ideas, Visions, Reflections, Demonstrations, Posters, Artifacts, Doctoral Symposium, New Faculty Symposium, Software Engineering Education, Tutorials
-3. Information of FSE_2:
-Conference dates: June 23-27, 2025
-Location: Trondheim, Norway
-Type: Offline
-Submission deadline: January 15, 2025
-Author notification: March 25, 2025
-Camera ready: April 21, 2025
-Topics: Software Engineering Education, Innovative Learning, Teaching Approaches, Empirical Studies, Curriculum Development, Competence Needs, Assessment, Evaluation, Soft Skills, Sustainability, Ethics, Tools, Platforms, Games-Based Learning, Project-Based Learning, Problem-Based Learning, Work-Integrated Learning, Continuing Education, On-the-Job Training, AI in Education
-4. Information of FSE_3:
-Conference dates: June 23-27, 2025
-Location: Trondheim, Norway
-Type: Offline
-Demonstrations Submission deadline: January 13, 2025
-Research Papers Initial notification: January 14, 2025
-Industry Papers Submission deadline: January 15, 2025
-Software Engineering Education Submission deadline: January 15, 2025
-Ideas, Visions and Reflections Submission deadline: January 16, 2025
-Tutorials Submission deadline: February 3, 2025
-Research Papers Camera ready (directly accepted paper): February 11, 2025
-Student Research Competition Submission deadline: February 14, 2025
-2030 Software Engineering Submission Deadline: February 23, 2025
-Doctoral Symposium Submission deadline: February 24, 2025
-Research Papers Submission for major-revision papers: February 25, 2025
-Posters Submission deadline: February 28, 2025
-Tutorials Acceptance: March 3, 2025
-Journal First Submission deadline: March 4, 2025
-Demonstrations Author notification: March 10, 2025
-Ideas, Visions and Reflections Author notification: March 14, 2025
-Student Research Competition Notification: March 24, 2025
-2030 Software Engineering Acceptance Deadlines: March 25, 2025
-Software Engineering Education Author notification: March 25, 2025
-Industry Papers Author notification: March 25, 2025
-Student Volunteers Submission deadline: March 30, 2025
-Research Papers Final notification for major revisions: April 1, 2025
-Journal First Author notification: April 4, 2025
-Posters Acceptance notification: April 10, 2025
-Doctoral Symposium Notification: April 10, 2025
-Tutorials Camera-ready deadline: April 14, 2025
-Industry Papers Camera-ready deadline: April 21, 2025
-Software Engineering Education Camera ready: April 21, 2025
-Ideas, Visions and Reflections Camera-ready deadline: April 24, 2025
-Posters Camera-ready deadline: April 24, 2025
-Demonstrations Camera-ready deadline: April 24, 2025
-Workshops Camera-ready deadline: April 24, 2025
-Student Research Competition Camera-ready version: April 24, 2025
-Research Papers Camera ready (major revisions): April 24, 2025
-Doctoral Symposium Camera-ready deadline: April 24, 2025
-Student Volunteers Notification: April 25, 2025
-2030 Software Engineering Workshop: July 26-27, 2025
-2030 Software Engineering Submission Deadline for the ACM TOSEM special issue: September 30, 2025
-2030 Software Engineering Acceptance Notification of ACM TOSEM papers: October 31, 2025
-Research Papers Author response: November 22-26, 2024
-Workshops Notification: November 19, 2024
-Workshops Workshop proposals submission: October 15, 2024
-Research Papers Full paper submission: September 12, 2024
-Research Papers Paper registration: September 5, 2024
-Topics: Software Engineering, Research Papers, Industry Papers, Ideas, Visions, Reflections, Demonstrations, Posters, Artifacts, Doctoral Symposium, New Faculty Symposium, Software Engineering Education, Tutorials, Student Volunteers, Industry Mentoring Symposium, Workshops, Open Science Policy
-
-
+Paper Registration and Abstract deadline: November 14, 2024
+Paper Submission deadline: November 14, 2024
+Notification of Paper Acceptance: January 21, 2025
+Topics: Embedded Networked Sensor Systems, Embedded Artificial Intelligence, Sensing Systems, Sensor Networks, Embedded Systems, Internet of Things, Wireless Communications, Machine Learning, Cyber-Physical Systems

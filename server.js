@@ -1,12 +1,13 @@
 // Importing libraries
 const express = require('express');
 const app = express();
+const cors = require('cors');
+app.use(cors());  // Cho phép tất cả các yêu cầu
 const expbs = require('express-handlebars');
 const path = require('path');
 
 // Importing files
 const routes = require('./routes/handlers');
-const cors = require('cors');
 const bodyParser = require('body-parser');
 app.use(bodyParser.json());
 

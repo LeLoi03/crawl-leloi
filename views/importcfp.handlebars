@@ -2,193 +2,137 @@
     <label for="titleInput">Title:</label>
     <input type="text" id="titleInput" placeholder="Enter title" />
 </div>
-
 <div>
     <label for="acronymInput">Acronym:</label>
     <input type="text" id="acronymInput" placeholder="Enter acronym" />
 </div>
-
 <div>
     <input type="file" id="fileInput" />
     <button id="uploadButton">Upload JSON</button>
     <button id="submitManualButton">Submit Manually</button>
 </div>
 
-<div id="output"></div>
-<table id="resultTable" border="1" style="width: 100%; border-collapse: collapse; margin-top: 20px; display: none;">
-    <thead id="resultHeader"></thead>
-    <tbody id="resultBody"></tbody>
-</table>
-
-<button id="sendToModelButton">Gửi đến Model</button>
-<div id="summaryOutput" style="margin-top: 20px;"></div>
-
+<div id="output">
+    <table id="resultTable" border="1">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Acronym</th>
+                <th>Link</th>
+                <th>Information</th>
+                <th>Conference Dates</th>
+                <th>Location</th>
+                <th>Type</th>
+                <th>Submission Date</th>
+                <th>Notification Date</th>
+                <th>Camera-ready Date</th>
+                <th>Registration Date</th>
+                <th>Topics</th>
+                <th>Others</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
 
 <script>
-    $(document).ready(function() {
-        // Upload JSON file
-        $('#uploadButton').click(function() {
-            var fileInput = $('#fileInput')[0];
+    function renderTable(data) {
+        const tableBody = $("#resultTable tbody");
+        tableBody.empty();
+
+        data.forEach((row) => {
+            const formatCellData = (data) => {
+                if (!data) return "";
+                return data.split(/[\n]/).map((line) => line.trim()).join('<br>');
+            };
+
+            const html = `<tr>
+                <td>${formatCellData(row.Name)}</td>
+                <td>${formatCellData(row.Acronym)}</td>
+                <td>${formatCellData(row.Link)}</td>
+                <td>${formatCellData(row.Information)}</td>
+                <td>${formatCellData(row["Conference dates"])}</td>
+                <td>${formatCellData(row.Location)}</td>
+                <td>${formatCellData(row.Type)}</td>
+                <td>${formatCellData(row["Submission date"])}</td>
+                <td>${formatCellData(row["Notification date"])}</td>
+                <td>${formatCellData(row["Camera-ready date"])}</td>
+                <td>${formatCellData(row["Registration date"])}</td>
+                <td>${formatCellData(row.Topics)}</td>
+                <td>${formatCellData(row.Others)}</td>
+            </tr>`;
+
+            tableBody.append(html);
+        });
+    }
+
+    $(document).ready(function () {
+        // Xử lý nút Upload JSON
+        $('#uploadButton').click(function () {
+            const fileInput = $('#fileInput')[0];
             if (fileInput.files.length === 0) {
                 alert('Please select a file.');
                 return;
             }
 
-            var file = fileInput.files[0];
-            var reader = new FileReader();
-            reader.onload = function(e) {
-                var jsonData = JSON.parse(e.target.result);
-                fetch('http://localhost:8080/upload', {
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+
+            reader.onload = function (e) {
+                const jsonData = JSON.parse(e.target.result);
+
+                // Gửi dữ liệu đến API
+                fetch('http://127.0.0.1:8080/upload', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
+                    headers: { 'Content-Type': 'application/json',
+                                    'from-server': 'true', // Đánh dấu đây là yêu cầu từ server
                     },
-                    body: JSON.stringify(jsonData)
+                    body: JSON.stringify(jsonData),
                 })
-                .then(response => response.json())
-                .then(data => renderTable(data.csvData))
-                .catch(error => {
-                    $("#output").html("<p>Error sending JSON file to API.</p>");
-                });
+                    .then((response) => response.json())
+                    .then((data) => {
+                        console.log("Response Data:", data);
+                        renderTable(data.processedData);
+                    })
+                    .catch((error) => {
+                        console.error("Error:", error);
+                        $("#output").html("<p>Error sending JSON file to API.</p>");
+                    });
             };
+
             reader.readAsText(file);
         });
 
-    // Submit manually entered data
-    $('#submitManualButton').click(function() {
-        const title = $('#titleInput').val().trim();
-        const acronym = $('#acronymInput').val().trim();
+        // Xử lý nút Submit Manually
+        $('#submitManualButton').click(function () {
+            const title = $('#titleInput').val().trim();
+            const acronym = $('#acronymInput').val().trim();
 
-        if (!title || !acronym) {
-            alert('Please enter both title and acronym.');
-            return;
-        }
-
-        const manualData = [{ Title: title, Acronym: acronym }];
-
-        fetch('http://localhost:8080/upload', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(manualData)
-        })
-        .then(response => response.json())
-        .then(data => renderTable(data.csvData))
-        .catch(error => {
-            $("#output").html("<p>Error submitting manual data to API.</p>");
-        });
-    });
-
-    function renderTable(csvData) {
-        if (csvData && csvData.length > 0) {
-            $('#resultHeader').empty();
-
-            // Lấy tiêu đề từ cột đầu tiên
-            const headers = Object.keys(csvData[0]);
-            const headerRow = headers.map(header => `<th>${header}</th>`).join('');
-            $('#resultHeader').append(`<tr>${headerRow}</tr>`);
-
-            $('#resultBody').empty();
-
-            // Tạo các dòng dữ liệu
-            csvData.forEach(row => {
-                const rowData = headers.map(header => {
-                    // Kiểm tra nếu dữ liệu cột có nhiều giá trị, cách nhau bởi dấu phẩy hoặc ký tự xuống dòng
-                    if (typeof row[header] === 'string' && (row[header].includes(',') || row[header].includes('\n'))) {
-                        // Tách thành các dòng riêng
-                        const values = row[header]
-                            .split(/[\n]/) // Chia tách bởi dấu phẩy hoặc xuống dòng
-                            .map(value => value.trim()) // Loại bỏ khoảng trắng thừa
-                            .filter(value => value.length > 0); // Loại bỏ giá trị rỗng
-
-                        // Tạo HTML xuống dòng rõ ràng
-                        return `<td>${values.map(value => `<div>${value}</div>`).join('')}</td>`;
-                    } else {
-                        // Không cần tách, trả về giá trị bình thường
-                        return `<td>${row[header]}</td>`;
-                    }
-                }).join('');
-
-                $('#resultBody').append(`<tr>${rowData}</tr>`);
-            });
-
-            $('#resultTable').show();
-        } else {
-            alert('No data available in CSV.');
-        }
-    }
-    });
-
-    function extractTableDataToJson() {
-        const tableRows = $('#resultBody tr');
-        const jsonData = [];
-
-        // Duyệt qua từng dòng của bảng
-        tableRows.each(function () {
-            const cells = $(this).find('td');
-            if (cells.length > 0) {
-                const rowData = {
-                    conferenceName: cells.eq(0).text().trim(), // Cột "Name"
-                    conferenceAcronym: cells.eq(1).text().trim(), // Cột "Acronym"
-                    conferenceText: cells.eq(3).text().trim(), // Cột "Information"
-                };
-                jsonData.push(rowData);
+            if (!title || !acronym) {
+                alert('Please enter both title and acronym.');
+                return;
             }
-        });
 
-        return jsonData;
-    }
+            const manualData = [{ Title: title, Acronym: acronym }];
+            console.log("Manual Data:", manualData);
 
-    function sendJsonToModelServer(jsonData) {
-        const serverUrl = "http://172.188.50.15:3000/summarize";
-
-        // Chuyển đổi JSON thành chuỗi văn bản duy nhất
-        const text = jsonData.map(item => {
-            return `Conference ${item.conferenceAcronym}: ${item.conferenceText}`;
-        }).join('\n\n');
-
-        console.log("JSON gửi đi", JSON.stringify({ text }));
-
-        fetch(serverUrl, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ text }) // Đặt chuỗi vào trường "text"
-        })
-            .then(response => response.json())
-            .then(data => {
-                renderModelResponse(data); // Hiển thị kết quả từ model
+            // Gửi dữ liệu nhập tay đến API
+            fetch('http://127.0.0.1:8080/upload', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json',
+                                'from-server': 'true', // Đánh dấu đây là yêu cầu từ server
+                },
+                body: JSON.stringify(manualData),
             })
-            .catch(error => {
-                console.error("Error sending JSON to model server:", error);
-                alert("Error communicating with the model server. Check the server logs for details.");
-            });
-
-    }
-
-    function renderModelResponse(response) {
-        if (response && response.summary) {
-            // Hiển thị kết quả tóm tắt vào phần tử HTML
-            $('#summaryOutput').html(`
-                <h3>Summary Result:</h3>
-                <p>${response.summary}</p>
-            `);
-        } else {
-            // Trường hợp không có dữ liệu tóm tắt hợp lệ
-            $('#summaryOutput').html(`
-                <h3>Error:</h3>
-                <p>Failed to retrieve summary from the server.</p>
-            `);
-        }
-    }
-
-    // Sự kiện khi người dùng nhấn nút "Gửi đến Model"
-    $('#sendToModelButton').click(function () {
-        const jsonData = extractTableDataToJson(); // Trích xuất dữ liệu từ bảng
-        console.log("JSON từ table:", jsonData);
-        sendJsonToModelServer(jsonData); // Gửi dữ liệu đến model server
+                .then((response) => response.json())
+                .then((data) => {
+                    console.log("Response Data:", data);
+                    renderTable(data.processedData);
+                })
+                .catch((error) => {
+                    console.error("Error:", error);
+                    $("#output").html("<p>Error sending manual data to API.</p>");
+                });
+        });
     });
-
 </script>
