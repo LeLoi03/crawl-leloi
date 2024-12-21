@@ -875,3 +875,5 @@ Call log:
 [2m  - navigating to "/", waiting until "domcontentloaded"[22m
 
 [2024-12-18T09:54:15.554Z] Acronym: SENSYS | Link: https://sensys.acm.org/2025/ | Error: Timeout
+[2024-12-19T12:53:31.678Z] Acronym: SIGCOMM | Link: https://conferences.sigcomm.org/sigcomm/2025/ | Unexpected Error: currentAcronym is not defined
+[2024-12-19T12:53:33.381Z] Acronym: SENSYS | Link: https://sensys.acm.org/2025/ | Unexpected Error: currentAcronym is not defined

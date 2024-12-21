@@ -140,7 +140,7 @@ No Important Dates data found.
   Sponsors 
 
  ACM SenSys 2025  
-   6 - 9 May   Irvine, USA   
+  6 - 9 May  Irvine, USA   
  The 23rd ACM Conference on  
   Embedded Networked Sensor Systems   
  In transition to Conference on  
@@ -153,27 +153,27 @@ No Important Dates data found.
 
  Latest News  
  11/07/2024    
- Abstract registration is now optional.      
+ Abstract registration is now optional.     
 
  Abstract registration before paper submission is now optional. Papers can now be registered before submission deadline on November 14, 2024, 23:59 AoE. ACM SenSys 2025 Submission System    
 
   10/14/2024    
- TPC self-nomination is open.      
+ TPC self-nomination is open.     
 
  ACM SenSys 2025 now welcomes applications to be a member of the TPC. Application deadline is on Monday October 28th, 2024. View TPC self-nomination page    
 
   10/13/2024    
- Paper submission system is open.      
+ Paper submission system is open.     
 
  Abstract registration deadline is on November 7, 2024, 23:59 AoE. Paper submission deadline is on November 14, 2024, 23:59 AoE. ACM SenSys 2025 Submission System    
 
   10/10/2024    
- New topic in call for papers.      
+ New topic in call for papers.     
 
  ACM SenSys 2025 now welcomes submissions on the topic of "Visions, Experiences, Tools, Datasets, and Benchmarks". For this new topic, authors may choose to submit either as a full paper (12 pages) or a short paper (6 pages). More info in CFP    
 
   10/1/2024    
- ACM SenSys 2025 call for paper is live.      
+ ACM SenSys 2025 call for paper is live.     
 
  ACM SenSys 2025 invites submissions on a broad range of topics that have been covered by SenSys, IPSN, and IoTDI, and new emerging topics of interest. Please visit CFP for more details. View CFP    
 

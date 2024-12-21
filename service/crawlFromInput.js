@@ -16,7 +16,8 @@ const queue = new PQueue({ concurrency: 5 }); // Giới hạn 5 tác vụ đồn
 const EDGE_PATH = 'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe';
 
 // AIzaSyAxMJPBLzIYe0gqh52YoycpAdcZQe2Io04
-const apiKey = "AIzaSyAV319MCiDorKNeNykl68MAzlIJk6YRz3g";
+const apiKey = "AIzaSyCpr1J5OYn1nmXI2IMjPPESRML52IX7GV0";
+
 const genAI = new GoogleGenerativeAI(apiKey);
 
 const generationConfig = {
@@ -117,7 +118,7 @@ const searchConferenceLinks = async (browserContext, conference) => {
       const newLinks = await page.$$eval("#search a", (elements) => {
         return elements
           .map((el) => el.href)
-          .filter((href) => href && href.startsWith("https://"));
+          .filter((href) => href && href.startsWith("http"));
       });
 
       newLinks.forEach((link) => {
@@ -510,7 +511,13 @@ const extractTextFromPDF = async (pdfUrl) => {
     // Dùng pdf-parse để trích xuất văn bản
     const pdfData = await pdf(pdfBuffer);
 
-    // console.log("Extracted Text:", pdfData.text);
+    // Kiểm tra số trang
+    if (pdfData.numpages > 3) {
+      console.log("PDF has more than 3 pages, skipping...");
+      return null; // Bỏ qua PDF dài hơn 3 trang
+    }
+
+    // Trả về văn bản đã trích xuất nếu số trang <= 3
     return pdfData.text;
   } catch (error) {
     console.error("Error extracting text from PDF:", error);
@@ -901,8 +908,8 @@ async function fetchContentWithRetry(page, maxRetries = 3) {
   }
 }
 
-// Tạo một tập hợp để lưu danh sách các Acronym đã xử lý
-const processedAcronyms = new Set();
+// // Tạo một tập hợp để lưu danh sách các Acronym đã xử lý
+// const processedAcronyms = new Set();
 
 const saveHTMLContent = async (browserContext, conference, links, allBatches, batch, batchIndexRef, allResponsesRef, numConferences) => {
   try {
@@ -991,24 +998,24 @@ const saveHTMLContent = async (browserContext, conference, links, allBatches, ba
 
           
 
-          // Kiểm tra nếu Acronym đã tồn tại, thêm "_Diff"
-          let currentAcronym = conference.Acronym;
-          if (processedAcronyms.has(currentAcronym)) {
-            currentAcronym += "_Diff";
-          }
+          // // Kiểm tra nếu Acronym đã tồn tại, thêm "_Diff"
+          // let currentAcronym = conference.Acronym;
+          // if (processedAcronyms.has(currentAcronym)) {
+          //   currentAcronym += "_Diff";
+          // }
 
-          // Cập nhật tập hợp các Acronym đã xử lý
-          processedAcronyms.add(currentAcronym);
+          // // Cập nhật tập hợp các Acronym đã xử lý
+          // processedAcronyms.add(currentAcronym);
 
           // Tổng hợp nội dung cuối cùng
-          const combinedContent = `Conference ${currentAcronym}_${i}:\n` +
+          const combinedContent = `Conference ${conference.Acronym}_${i}:\n` +
           `${fullText}\nCall for Papers data:\n${cfpContent}` +
           `\nImportant Dates data:\n${impContent}`;
 
           // Push dữ liệu vào batch
           batch.push({
             conferenceName: conference.Title,
-            conferenceAcronym: currentAcronym,
+            conferenceAcronym: conference.Acronym,
             conferenceIndex: i,
             conferenceLink: links[i] || "No conference link available.",
             cfpLink: cfpLink || "No CFP link found.",
@@ -1557,7 +1564,7 @@ const crawlFromInput = async (conferenceData) => {
     }
   });
 
-  const numConferences = conferenceData.length < 20 ? conferenceData.length : 20;
+  const numConferences = 20;
   const allBatches = [];
   const allResponsesRef = { current: "" };
   const batch = [];

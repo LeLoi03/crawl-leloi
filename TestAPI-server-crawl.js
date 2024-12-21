@@ -7,6 +7,7 @@ const sendConferenceData = async (conferenceData) => {
         const response = await axios.post('http://172.188.50.15:8080/crawl_from_links', conferenceData, {
             headers: {
                 'Content-Type': 'application/json',
+                'from-server': 'true'
             },
         });
 
@@ -42,4 +43,13 @@ const sampleData =
 
 // console.log("Data being sent:", sampleData);
 
-sendConferenceData(sampleData);
+(async () => {
+    const startTime = Date.now();
+//   console.log(`Start: ${startTime}`)
+    await sendConferenceData(sampleData);
+    // console.log(`End: ${endTime}`)
+      const endTime = Date.now();
+
+  const runTime = endTime - startTime;
+  console.log(`Time: ${runTime} ms`);
+})();
