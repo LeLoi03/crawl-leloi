@@ -1562,7 +1562,7 @@ async function crawlFromLinks(linkData) {
   });
 
   
-  const numConferences = linkData.length < 20 ? linkData.length : 20;
+  const numConferences = 20;
   const allBatches = [];
   const allResponsesRef = { current: "" };
   const batch = [];
