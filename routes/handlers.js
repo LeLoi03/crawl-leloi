@@ -1,11 +1,10 @@
-const express = require('express');
+import express from 'express';
 
-const router = express.Router(); 
+const router = express.Router();
 
-const {crawlFromInput} = require('../service/crawlFromInput');
-const {crawlFromCorePortal} = require('../service/crawlFromCorePortal');
-const {crawlFromLinks} = require('../service/crawlFromLinks');
-
+import { crawlFromInput } from '../service/crawlFromInput.js';
+import { crawlFromCorePortal } from '../service/crawlFromCorePortal.js';
+import { crawlFromLinks } from '../service/crawlFromLinks.js';
 
 
 // Routing 
@@ -98,6 +97,6 @@ router.get('/crawl', (req, res) => {
     res.render('importcfp')
 });
 
-module.exports = router;
+export default router;
 
 

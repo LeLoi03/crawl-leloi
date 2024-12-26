@@ -1,22 +1,26 @@
-1. Information of SIGCOMM_0: 
-Conference dates: September 8-11, 2025
-Location: São Francisco Convent, Coimbra, Portugal
+1. Information of ED-MEDIA_0:
+Conference dates: May 19-23, 2025
+Location: Barcelona, Spain
 Type: Offline
-Call for Poster & Demo: December 13, 2024
-Call for Tutorial and Hackathon Proposals: October 23, 2024
-Call for Workshop Proposals: October 4, 2024
-Call for papers: October 4, 2024
-Call for Poster & Demo: April 20, 2025
-Call for Tutorial and Hackathon: February 18, 2025
-Call for Workshop: January 31, 2025
-Main Track CFP Paper submission: January 24, 2025
-Main Track CFP Abstract registration:  January 24, 2025
-Topics: Communication Networks, Networked Systems, Computer Networks, Wired and Wireless Technologies, Network Architecture, Network Security, AI/Machine Learning, Ethics
-2. Information of SENSYS_0: 
-Conference dates: May 6-9, 2025
-Location: Irvine, USA
+Call for Proposals: December 20, 2024
+Topics: AI in Education, Advanced Technologies for Learning and Teaching, Assessment and Research, Educational Policy, Global Networks, Innovative Approaches to Learning, Open Education, Technologies for Socially Responsive Learning, Virtual and Distance Education
+
+2. Information of ED-MEDIA_1:
+Conference dates: May 19-23, 2025
+Location: Barcelona, Spain
 Type: Offline
-Abstract registration: November 7, 2024
-Paper Submission: November 14, 2024
-Notification of Paper Acceptance: January 21, 2025
-Topics: Embedded Networked Sensor Systems, Embedded Artificial Intelligence, Sensing Systems, Sensor Networks, Embedded Systems, Mobile Computing, Wireless Communication, Signal Processing, Data Science, AI-driven Applications
+Proposals Due: December 20, 2024
+Topics: Innovation and Education, Multimedia/Hypermedia, Telecommunications
+
+3. Information of ED-MEDIA_2:
+Conference dates: June 26 - July 1, 2000
+Location: Montreal, Canada
+Type: Offline
+Topics: Educational Multimedia, Hypermedia, Telecommunications, ICT in Training and Distance Education
+
+4. Information of ED-MEDIA_3:
+Conference dates: May 19-23, 2025
+Location: Barcelona, Spain
+Type: Offline
+Topics: AI in Education, Advanced Technologies for Learning and Teaching, Assessment and Research, Educational Policy, Global Networks, Innovative Approaches to Learning, Open Education, Technologies for Socially Responsive Learning, Virtual and Distance Education
+

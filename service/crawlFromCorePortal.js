@@ -1,26 +1,27 @@
-const { GoogleGenerativeAI } = require("@google/generative-ai");
-const csv = require('csv-parser');
-const { createReadStream } = require('fs');
-const fs = require('fs');
-const dotenv = require('dotenv');
-const PQueue = require('p-queue-cjs').default;
-const playwright = require("playwright");
-const { JSDOM } = require("jsdom");
-const { parse } = require("json2csv");
-const axios = require("axios");
-const pdf  = require("pdf-parse");
+import { GoogleGenerativeAI } from "@google/generative-ai";
+import csv from 'csv-parser';
+import { createReadStream } from 'fs';
+import fs from 'fs';
+import dotenv from 'dotenv';
+import PQueue from 'p-queue';
+import {chromium} from "playwright";
+import { JSDOM } from "jsdom";
+import axios from 'axios';
+import  pdf  from 'pdf-parse';
+import { Mutex } from 'async-mutex';
 dotenv.config(); // Tải biến môi trường từ file .env
 
 const queue = new PQueue({ concurrency: 5 }); // Giới hạn 5 tác vụ đồng thời
 const EDGE_PATH = 'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe';
 
 // AIzaSyAxMJPBLzIYe0gqh52YoycpAdcZQe2Io04
-const apiKey = "AIzaSyCpr1J5OYn1nmXI2IMjPPESRML52IX7GV0";
+const apiKey = "AIzaSyAV319MCiDorKNeNykl68MAzlIJk6YRz3g";
+// const apiKey = "AIzaSyCpr1J5OYn1nmXI2IMjPPESRML52IX7GV0";
 const genAI = new GoogleGenerativeAI(apiKey);
 
 const generationConfig = {
-  temperature: 1,
-  topP: 0.95,
+  temperature: 0.6,
+  topP: 0.7,
   topK: 40,
   maxOutputTokens: 8192,
   responseMimeType: "text/plain",
@@ -50,6 +51,8 @@ const getConferenceList = async (browserContext) => {
   await queue.onIdle(); // Đợi hàng đợi hoàn thành
   console.log(allConferences.length)
   return allConferences;
+  // return allConferences.slice(0, 10);
+
 };
 
 const searchConferenceLinks = async (browserContext, conference) => {
@@ -62,31 +65,31 @@ const searchConferenceLinks = async (browserContext, conference) => {
   try {
     // Đặt timeout toàn bộ cho quá trình tìm kiếm
     timeout = setTimeout(() => {
-      // console.warn("Search process is taking too long. Closing the page.");
+      console.log(`Timeout reached. Closing page for conference: ${conference.Acronym}`);
       page.close();
-    }, 60000); // 60 giây
+    }, 15000); // 20 giây để đóng trang nếu không có hành động
 
-    // Truy cập Google
-    await page.goto('https://www.google.com/', { waitUntil: 'load', timeout: 60000 });
+    // Mở trang Google và thực hiện tìm kiếm
+    const searchQuery = `${conference.Title} (${conference.Acronym}) conference 2024 or 2025`;
+    const googleSearchUrl = `https://www.google.com/search?q=${encodeURIComponent(searchQuery)}`;
+    // console.log(googleSearchUrl);
+    await page.goto(googleSearchUrl);
 
-    // Tìm hộp tìm kiếm và nhập từ khóa
-    await page.waitForSelector("#APjFqb", { timeout: 30000 });
-    let text = conference.Title.replace(/\s*\([^)]*\)/g, ''); // Loại bỏ phần trong ( ) và khoảng trắng dư
-    await page.fill("#APjFqb", `${text} (${conference.Acronym}) conference 2024 or 2025`);
-    await page.press("#APjFqb", "Enter");
-    await page.waitForSelector("#search");
+    // Chờ trang tìm kiếm Google tải xong
+    await page.waitForSelector("#search", { timeout: 15000 });
 
     const unwantedDomains = [
       "scholar.google.com",
       "translate.google.com",
-      "google.com",
+      "calendar.google.com",
+      "www.google.com",
       "wikicfp.com",
       "dblp.org",
       "medium.com",
       "dl.acm.org",
       "easychair.org",
       "youtube.com",
-      "https://portal.core.edu.au/conf-ranks/",
+      "portal.core.edu.au",
       "facebook.com",
       "amazon.com",
       "wikipedia.org",
@@ -108,38 +111,53 @@ const searchConferenceLinks = async (browserContext, conference) => {
       "facebook.com",
       "dl.acm.org",
       "www.researchgate.net",
-      "aconf.org"
+      "aconf.org",
+      "acm.org",
+      "internationalconferencealerts.com",
+      "aisuperior.com",
+      "resurchify.com",
+      "sigarch.org",
+      "sigcse.org",
+      "scimagojr.com",
+      "clocate.com"
     ];
 
     // Lấy liên kết
-    while (links.length < maxLinks) {
-      const newLinks = await page.$$eval("#search a", (elements) => {
-        return elements
-          .map((el) => el.href)
-          .filter((href) => href && href.startsWith("http"));
-      });
+    const newLinks = await page.$$eval("#search a", (elements) => {
+      const allLinks = [];
+      const uniqueDivLinks = new Set();
 
-      newLinks.forEach((link) => {
-        if (
-          !links.includes(link) &&
-          !unwantedDomains.some((domain) => link.includes(domain)) &&
-          !/book|product/i.test(link) && // Bỏ qua nếu link chứa "book" hoặc "product"
-          links.length < maxLinks
-        ) {
-          links.push(link);
+      elements.forEach((el) => {
+        const href = el.href;
+        if (href && href.startsWith("http")) {
+          const parentDiv = el.closest("div.HiHjCd.wHYlTd");
+          if (parentDiv) {
+            if (!uniqueDivLinks.has(parentDiv)) {
+              uniqueDivLinks.add(parentDiv);
+              allLinks.push(href); // Chỉ lấy 1 thẻ a từ div này
+            }
+          } else {
+            allLinks.push(href); // Lấy tất cả thẻ a bình thường
+          }
         }
       });
 
-      if (links.length < maxLinks) {
-        await page.keyboard.press("PageDown");
-        await page.waitForTimeout(2000);
-      } else {
-        break;
+      return allLinks;
+    });
+
+    newLinks.forEach((link) => {
+      if (
+        !links.includes(link) &&
+        !unwantedDomains.some((domain) => link.includes(domain)) &&
+        !/book|product/i.test(link) && // Bỏ qua nếu link chứa "book" hoặc "product"
+        links.length < maxLinks
+      ) {
+        links.push(link);
       }
-    }
+    });
 
   } catch (error) {
-    // console.error(`Error while searching for conference links: ${error.message}`);
+    console.error(`Error while searching for conference links: ${error.message}`);
   } finally {
     // Xóa timeout nếu trang kết thúc sớm
     if (timeout) clearTimeout(timeout);
@@ -280,6 +298,7 @@ const traverseNodes = (node) => {
   return text;
 };
 
+
 // Hàm để loại bỏ các hàng trống liên tiếp
 const removeExtraEmptyLines = (text) => {
   return text.replace(/\n\s*\n\s*\n/g, '\n\n');
@@ -293,7 +312,7 @@ const getTotalPages = async (browserContext, url) => {
 
     // Kiểm tra mã trạng thái HTTP
     if (!response || response.status() >= 400) {
-      console.error(`Error loading page: ${url} - Status code: ${response ? response.status() : 'No response'}`);
+      // console.error(`Error loading page: ${url} - Status code: ${response ? response.status() : 'No response'}`);
       return 1; // Trả về 1 trang nếu không thể tải trang
     }
 
@@ -308,7 +327,7 @@ const getTotalPages = async (browserContext, url) => {
 
     return totalPages;
   } catch (error) {
-    console.error(`Error during getTotalPages: ${error.message}`);
+    // console.error(`Error during getTotalPages: ${error.message}`);
     return 1; // Trả về 1 trang nếu có lỗi xảy ra
   } finally {
     await page.close();
@@ -324,7 +343,7 @@ const getConferencesOnPage = async (browserContext, url, i) => {
 
     // Kiểm tra mã trạng thái HTTP
     if (!response || response.status() >= 400) {
-      console.error(`Error loading page: ${url} - Status code: ${response ? response.status() : 'No response'}`);
+      // console.error(`Error loading page: ${url} - Status code: ${response ? response.status() : 'No response'}`);
       return []; // Trả về mảng rỗng nếu không thể tải trang
     }
 
@@ -342,9 +361,11 @@ const getConferencesOnPage = async (browserContext, url, i) => {
     );
 
     const conferences = [];
+
     for (let i = 0; i < data.length; i += 9) {
+      const title_formatted = data[i].replace(/\s*\([^)]*\)/g, '');
       conferences.push({
-        Title: data[i],
+        Title: title_formatted,
         Acronym: data[i + 1],
         Source: data[i + 2],
         Rank: data[i + 3],
@@ -422,13 +443,12 @@ const getConferencesOnPage = async (browserContext, url, i) => {
 
     return conferences;
   } catch (error) {
-    console.error(`Error during getConferencesOnPage: ${error.message}`);
+    // console.error(`Error during getConferencesOnPage: ${error.message}`);
     return []; // Trả về mảng rỗng nếu có lỗi xảy ra
   } finally {
     await page.close();
   }
 };
-
 async function readPromptCSV(filePath) {
   return new Promise((resolve, reject) => {
     try {
@@ -511,304 +531,141 @@ const extractTextFromPDF = async (pdfUrl) => {
 
     // Kiểm tra số trang
     if (pdfData.numpages > 3) {
-      console.log("PDF has more than 3 pages, skipping...");
+      // console.log("PDF has more than 3 pages, skipping...");
       return null; // Bỏ qua PDF dài hơn 3 trang
     }
 
     // Trả về văn bản đã trích xuất nếu số trang <= 3
     return pdfData.text;
   } catch (error) {
-    console.error("Error extracting text from PDF:", error);
+    // console.error("Error extracting text from PDF:", error);
     return null;
   }
 };
 
 const saveHTMLFromCallForPapers = async (page, conference) => {
   try {
+      let foundTab = false;
 
-    let foundTab = false;
+      const keywords = [
+        { type: 'exact', values: ["call for research papers", "call for papers", "call-for-papers",
+          "call for paper", "research track"] },
+        { type: 'tab', values: [
+          "callforpapers", "call-for-papers", "call_for_papers",
+          "call-for-paper", "call-papers", "callpapers",
+          "calls/main_conference_papers", "callsresearch", "cfp",
+          "tech-track", "technical-track", "technical-papers",
+          "tech-papers", "conference-papers"
+        ]},
+        { type: 'remainTab', values: [
+          "technical", "papers", "research", "author-guidelines",
+          "call", "topics", "tracks", "track",
+          "submissions", "submission", "author"
+        ]}
+      ];
 
-    const tabs = [
-      "callforpapers",
-      "call-for-papers",
-      "call_for_papers",
-      "call-papers",
-      "callpapers",
-      "calls/main_conference_papers",
-      "callsresearch",
-      "cfp",
-      "tech-track",
-      "technical-track",
-      "technical-papers",
-      "tech-papers",
-      "conference-papers"
-    ];
 
-    const remainTabs = [
-      "technical",
-      "papers",
-      "research",
-      "author-guidelines",
-      "call",
-      "topics",
-      "tracks",
-      "track",
-      "submissions",
-      "submission",
-      "author"
-    ];
+      const excludeTexts = [
+          "doctorial consortium", "poster", "demos", "workshop",
+          "tutorials", "sponsorship", "committee"
+      ];
 
-    const excludeTexts = [
-      "Doctorial consortium",
-      "Poster",
-      "Demos",
-      "Workshop",
-      "Tutorials",
-      "Sponsorship",
-      "Committee"
-    ];
+      const clickableElements = await page.$$eval("a", (els) =>
+          els.map(el => ({
+              url: el.href,
+              text: el.textContent.trim(),
+              tag: el.tagName.toLowerCase(),
+              element: el.outerHTML
+          }))
+      );
 
-    const clickableElements = await page.$$eval("a", (els) => {
-      return els.map((el) => ({
-        url: el.href,
-        tag: el.tagName.toLowerCase(),
-        element: el.outerHTML
-      }));
-    });
-
-    const cfpTextMatch = clickableElements.find((el) =>
-      el && typeof el.text === 'string' && el.text.toLowerCase().includes("call for papers")
-    );
-
-    if (cfpTextMatch) {
-      const fullUrl = new URL(bestMatch.url, page.url()).href;
-      const currentOrigin = new URL(page.url()).origin;
-      const targetOrigin = new URL(fullUrl).origin;
-      
-      // Nếu URL kết thúc bằng .pdf, xử lý PDF
-      if (fullUrl.endsWith(".pdf")) {
-        console.log(`Processing PDF: ${fullUrl}`);
-        const pdfText = await extractTextFromPDF(fullUrl);
-        if (pdfText) {
-          foundTab = true;
-          return { fullText: pdfText, fullUrl };
-        } else {
-          console.log(`Failed to extract text from PDF: ${fullUrl}`);
-          return { fullText: "", fullUrl: null };
-        }
-      }
-
-      // Bỏ qua nếu URL chuyển hướng đến domain khác
-      if (currentOrigin !== targetOrigin) {
-        // console.log(`Skipping cross-origin URL: ${fullUrl}`);
-        return { fullText: "", fullUrl: null };
-      }
-      
-      // Chuyển hướng tới trang của tab Call for Papers
-      await page.goto(fullUrl, { waitUntil: "domcontentloaded", timeout: 30000 });
-
-      // Lấy nội dung từ tất cả các phần tử có chứa thuộc tính "main"
-      let mainContent = await page.$$eval("*", (els) => {
-        return els
-          .filter(el => Array.from(el.attributes).some(attr => attr.name.toLowerCase().includes("call-for-papers", "callforpapers", "call_for_papers", "main", "body-content")))
-          .map(el => el.outerHTML)
-          .join("\n\n");
-      });
-
-      if (!mainContent) {
-        mainContent = await page.content();
-      }
-
-      const document = cleanDOM(mainContent);
-      let fullText = traverseNodes(document.body);
-      fullText = removeExtraEmptyLines(fullText);
-
-      foundTab = true;
-      return { fullText, fullUrl };
-    }
-
-    for (const tab of tabs) {
-      // Sử dụng regex để kiểm tra tab, cho phép các dấu và số trước và sau từ khóa
-      const matchedElement = clickableElements.find((el) => {
-        const matchesUrl =
-          typeof el.url === "string" &&
-          new RegExp(`(?<=\\W|\\d|^)${tab}(?=\\W|\\d|$)`, "i").test(el.url.toLowerCase());
-        const hasExcludedText =
-          typeof el.text === "string" &&
-          excludeTexts.some((excluded) =>
-            el.text.toLowerCase().includes(excluded.toLowerCase())
-          );
-        const isNotImage = typeof el.url === "string" && !/\.(png|jpe?g)$/i.test(el.url);
-    
-        return matchesUrl && !hasExcludedText && isNotImage;
-      });
-    
-      if (matchedElement) {
-        const fullUrl = new URL(matchedElement.url, page.url()).href;
+      const processPage = async (url) => {
         const currentOrigin = new URL(page.url()).origin;
-        const targetOrigin = new URL(fullUrl).origin;
-    
-        // Nếu URL kết thúc bằng .pdf, xử lý PDF
-        if (fullUrl.endsWith(".pdf")) {
-          console.log(`Processing PDF: ${fullUrl}`);
-          const pdfText = await extractTextFromPDF(fullUrl);
-          if (pdfText) {
-            foundTab = true;
-            return { fullText: pdfText, fullUrl };
-          } else {
-            console.log(`Failed to extract text from PDF: ${fullUrl}`);
-            continue; // Tiếp tục với các link khác nếu không trích xuất được văn bản
-          }
-        }
-    
+        const targetOrigin = new URL(url).origin;
+
         // Bỏ qua nếu URL chuyển hướng đến domain khác
         if (currentOrigin !== targetOrigin) {
-          console.log(`Skipping cross-origin URL: ${fullUrl}`);
-          continue; // Bỏ qua URL này và tiếp tục với các link khác
+          // console.log(`Skipping cross-origin URL: ${url}`);
+          return { fullText: "", fullUrl: null };
         }
-    
-        // Chuyển hướng tới trang của tab Call for Papers
-        await page.goto(fullUrl, { waitUntil: "domcontentloaded", timeout: 30000 });
-    
-        // Lấy nội dung từ tất cả các phần tử có chứa thuộc tính "main"
+        
+        // Nếu URL kết thúc bằng .pdf, xử lý PDF
+        if (url.endsWith(".pdf")) {
+            // console.log(`Processing PDF: ${url}`);
+            const pdfText = await extractTextFromPDF(url);
+            if (pdfText) {
+              return { fullText: pdfText, fullUrl: url };
+            } else {
+                // console.log(`Failed to extract text from PDF: ${url}`);
+                return { fullText: "", fullUrl: null };
+            }
+        }
+        
+        // const page = await browserContext.newPage();
+
+        await page.goto(url, { waitUntil: "domcontentloaded", timeout: 10000 });
+
+          // Lấy nội dung từ tất cả các phần tử có chứa thuộc tính "main"
         let mainContent = await page.$$eval("*", (els) => {
-          return els
-            .filter((el) =>
-              Array.from(el.attributes).some((attr) =>
-                attr.name
-                  .toLowerCase()
-                  .includes(
-                    "call-for-papers",
-                    "callforpapers",
-                    "call_for_papers",
-                    "main",
-                    "body-content"
-                  )
-              )
-            )
-            .map((el) => el.outerHTML)
+            return els
+            .filter(el => Array.from(el.attributes).some(attr => attr.name.toLowerCase().includes("call-for-papers", "callforpapers", "call_for_papers", "main", "body-content")))
+            .map(el => el.outerHTML)
             .join("\n\n");
         });
-    
+      
         if (!mainContent) {
-          mainContent = await page.content();
+            mainContent = await page.content();
         }
-    
+      
         const document = cleanDOM(mainContent);
         let fullText = traverseNodes(document.body);
         fullText = removeExtraEmptyLines(fullText);
-    
-        foundTab = true;
-        return { fullText, fullUrl };
-      }
-    }
-    
-    // Nếu không tìm thấy trong `tabs`, tiếp tục tìm trong `remainTabs`
-    if (!foundTab) {
-      let bestMatch = null;
-
-      const cfpTextMatch = clickableElements.find((el) =>
-        el && typeof el.text === 'string' && el.text.toLowerCase().includes("call for papers")
-      );
       
+        return { fullText, fullUrl: url };
+    };
 
-      if (cfpTextMatch) {
-        bestMatch = cfpTextMatch;
-      } else {
-        let maxMatches = 0;
+    // Tìm kiếm theo keywords
+    for (const keywordType of keywords) {
+      for (const value of keywordType.values) {
+        const matchedElement = clickableElements.find(el => {
+            if (!el || !el.url || !el.text) return false;
 
-        for (const el of clickableElements) {
-          // Kiểm tra xem el có đầy đủ thuộc tính cần thiết không
-          if (!el || typeof el.url !== 'string' || typeof el.text !== 'string') {
-            continue; // Bỏ qua phần tử không hợp lệ
-          }
-        
-          // Lọc các tab trong remainTabs bằng regex
-          const matchedTabs = remainTabs.filter((tab) =>
-            new RegExp(`(?<=\\W|\\d|^)${tab}(?=\\W|\\d|$)`, 'i').test(el.url.toLowerCase())
-          );
-        
-          // Nếu không có tab nào khớp, bỏ qua phần tử này
-          if (matchedTabs.length === 0) continue;
-        
-          // Kiểm tra nếu URL chứa văn bản bị loại trừ
-          const hasExcludedText = excludeTexts.some((excluded) =>
-            el.text.toLowerCase().includes(excluded.toLowerCase())
-          );
-        
-          // Kiểm tra nếu URL không phải là ảnh
-          const isNotImage = !/\.(png|jpe?g)$/i.test(el.url);
-        
-          // Nếu URL không chứa văn bản bị loại trừ và không phải là ảnh
-          if (!hasExcludedText && isNotImage) {
-            // Cập nhật bestMatch nếu số lượng tab khớp nhiều hơn hoặc nếu chưa có bestMatch
-            if (matchedTabs.length > maxMatches || (matchedTabs.length === maxMatches && !bestMatch)) {
-              maxMatches = matchedTabs.length;
-              bestMatch = el;
+            const isNotImage = !/\.(png|jpe?g)$/i.test(el.url);
+            const hasExcludedText = excludeTexts.some(excluded =>
+                el.text.toLowerCase().includes(excluded.toLowerCase())
+            );
+
+            let matches = false;
+            if (keywordType.type === 'exact') {
+                matches = el.text.toLowerCase().includes(value)
+            } else if (keywordType.type === 'tab' || keywordType.type === 'remainTab') {
+               matches = new RegExp(`(?<=\\W|\\d|^)${value}(?=\\W|\\d|$)`, "i").test(el.url.toLowerCase())
             }
-          }
-        }
-        
-        if (bestMatch) {
-          const fullUrl = new URL(bestMatch.url, page.url()).href;
-          const currentOrigin = new URL(page.url()).origin;
-          const targetOrigin = new URL(fullUrl).origin;
-          
-          // Nếu URL kết thúc bằng .pdf, xử lý PDF
-          if (fullUrl.endsWith(".pdf")) {
-            console.log(`Processing PDF: ${fullUrl}`);
-            const pdfText = await extractTextFromPDF(fullUrl);
-            if (pdfText) {
-              foundTab = true;
-              return { fullText: pdfText, fullUrl };
-            } else {
-              console.log(`Failed to extract text from PDF: ${fullUrl}`);
-              return { fullText: "", fullUrl: null };
-            }
-          }
+            return matches && !hasExcludedText && isNotImage;
 
-          // Bỏ qua nếu URL chuyển hướng đến domain khác
-          if (currentOrigin !== targetOrigin) {
-            // console.log(`Skipping cross-origin URL: ${fullUrl}`);
-            return { fullText: "", fullUrl: null };
-          }
-          
-          // Chuyển hướng tới trang của tab Call for Papers
-          await page.goto(fullUrl, { waitUntil: "domcontentloaded", timeout: 30000 });
-
-          // Lấy nội dung từ tất cả các phần tử có chứa thuộc tính "main"
-          let mainContent = await page.$$eval("*", (els) => {
-            return els
-              .filter(el => Array.from(el.attributes).some(attr => attr.name.toLowerCase().includes("call-for-papers", "callforpapers", "call_for_papers", "main", "body-content")))
-              .map(el => el.outerHTML)
-              .join("\n\n");
           });
 
-          if (!mainContent) {
-            mainContent = await page.content();
+        if (matchedElement) {
+          const fullUrl = new URL(matchedElement.url, page.url()).href;
+          const result = await processPage(fullUrl);
+          if(result.fullText){
+            foundTab = true;
+            return result;
           }
-
-          const document = cleanDOM(mainContent);
-          let fullText = traverseNodes(document.body);
-          fullText = removeExtraEmptyLines(fullText);
-
-          foundTab = true;
-          return { fullText, fullUrl };
-
         }
       }
+        if (foundTab) {
+          break; // If a tab is found, break out of the loop
+        }
     }
-
-    // Nếu không tìm thấy tab nào phù hợp, lưu thông tin hội nghị vào file
-    if (!foundTab) {
+  
+    if(!foundTab)
       return { fullText: "", fullUrl: null };
-    }
-  } catch (error) {
-    // In thông báo lỗi nếu có
-    console.log("\nError in saveHTMLFromCallForPapers:", error);
-    return { fullText: "", fullUrl: null }; // Trả về giá trị mặc định nếu lỗi
-  }
 
+  } catch (error) {
+      // console.error("Error in saveHTMLFromCallForPapers:", error);
+      return { fullText: "", fullUrl: null };
+  }
 };
 
 const saveHTMLFromImportantDates = async (page) => {
@@ -851,13 +708,13 @@ const saveHTMLFromImportantDates = async (page) => {
 
         // Nếu URL kết thúc bằng .pdf, xử lý PDF
         if (fullUrl.endsWith(".pdf")) {
-          console.log(`Processing PDF: ${fullUrl}`);
+          // console.log(`Processing PDF: ${fullUrl}`);
           const pdfText = await extractTextFromPDF(fullUrl);
           if (pdfText) {
             foundTab = true;
             return { fullText: pdfText, fullUrl };
           } else {
-            console.log(`Failed to extract text from PDF: ${fullUrl}`);
+            // console.log(`Failed to extract text from PDF: ${fullUrl}`);
             continue; // Tiếp tục với các link khác nếu không trích xuất được văn bản
           }
         }
@@ -869,7 +726,7 @@ const saveHTMLFromImportantDates = async (page) => {
         }
 
         // Chuyển hướng tới trang của tab Call for Papers
-        await page.goto(fullUrl, { waitUntil: "domcontentloaded", timeout: 30000 });
+        await page.goto(fullUrl, { waitUntil: "domcontentloaded", timeout: 10000 });
 
         const htmlContent = await page.content();
         // Xử lý nội dung HTML
@@ -899,203 +756,210 @@ async function fetchContentWithRetry(page, maxRetries = 3) {
     try {
       return await page.content(); // Lấy nội dung trang
     } catch (err) {
-      console.log(`[Attempt ${attempt}] Error fetching page content: ${err.message}`);
+      // console.log(`[Attempt ${attempt}] Error fetching page content: ${err.message}`);
       if (attempt === maxRetries) throw err;
-      await page.waitForTimeout(1000); // Đợi 1 giây trước khi thử lại
+      await page.waitForTimeout(2000); // Đợi 1 giây trước khi thử lại
     }
   }
 }
 
-// // Tạo một tập hợp để lưu danh sách các Acronym đã xử lý
-// const processedAcronyms = new Set();
+const acronymMutex = new Mutex();
 
-const saveHTMLContent = async (browserContext, conference, links, allBatches, batch, batchIndexRef, allResponsesRef, numConferences) => {
-  try {
-
-
-    for (let i = 0; i < links.length; i++) {
-      const page = await browserContext.newPage();
-
-
-      try {
-        // Timeout nếu trang tải quá lâu
-        const timeoutPromise = new Promise((_, reject) =>
-          setTimeout(() => reject(new Error("Timeout")), 20000)
-        );
-        // Biến lưu lỗi để ghi log chi tiết
-        let errorDetails = null;
-
-        // Lấy timestamp hiện tại
-        const timestamp = new Date().toISOString(); // ISO format (YYYY-MM-DDTHH:mm:ss.sssZ)
-
-
-        // Đoạn này kiểm tra trạng thái của trang khi tải
-        
-        let isRedirect = false;
-
-        // Đăng ký sự kiện lắng nghe điều hướng trước khi gọi page.goto
-        page.on('framenavigated', (frame) => {
-          if (frame === page.mainFrame() && frame.url() !== links[i]) {
-            isRedirect = true; // Đánh dấu rằng trang đã điều hướng
-            // console.log(`[${new Date().toISOString()}] Redirect detected: ${links[i]} -> ${frame.url()}`);
-          }
-        });
-
-        const response = await Promise.race([
-          page.goto(links[i], { waitUntil: "domcontentloaded" }),
-          timeoutPromise
-        ]).catch((err) => {
-          errorDetails = err.message; // Ghi lại lỗi timeout hoặc lỗi khác
-        });
-
-        // Kiểm tra phản hồi HTTP
-        if (response && !response.ok()) {
-          errorDetails = `HTTP Error ${response.status()} - ${response.statusText()}`;
-        }
-
-        if (errorDetails) {
-          // Ghi log chi tiết vào file nếu gặp lỗi
-          const logMessage = `[${timestamp}] Acronym: ${conference.Acronym} | Link: ${links[i]} | Error: ${errorDetails}\n`;
-          await fs.promises.appendFile('./error_access_link_log.txt', logMessage, 'utf8');
-
-          // console.error(logMessage);
-          continue; // Bỏ qua liên kết này, tiếp tục với liên kết tiếp theo
-        }
-
-        if (isRedirect) {
-          try {
-            // Đợi trạng thái tải ổn định
-            await page.waitForLoadState('networkidle', { timeout: 10000 }); // Đợi thêm để chắc chắn
-            console.log(`[${new Date().toISOString()}] Redirect detected for: ${links[i]}. Final URL: ${page.url()}`);
-          } catch (err) {
-            errorDetails = `Timeout or unstable state after redirect: ${err.message}`;
-            const logMessage = `[${new Date().toISOString()}] Acronym: ${conference.Acronym} | Link: ${links[i]} | Error: ${errorDetails}\n`;
-            await fs.promises.appendFile('./error_access_link_log.txt', logMessage, 'utf8');
-            continue;
-          }
-        }
-        
-
-        // Kiểm tra URL hiện tại
-        if (page.url() === links[i] || isRedirect) {
-          // Sử dụng hàm thử lại
-          const htmlContent = await fetchContentWithRetry(page);
-
-
-          // Xử lý nội dung HTML
-          const document = cleanDOM(htmlContent);
-          let fullText = traverseNodes(document.body);
-          fullText = removeExtraEmptyLines(fullText);
-
-          const { fullText: cfp, fullUrl: cfpLink } = await saveHTMLFromCallForPapers(page, conference) || {};
-          const { fullText: imp, fullUrl: impLink } = await saveHTMLFromImportantDates(page) || {};
-
-          // Kiểm tra fallback khi không tìm thấy nội dung
-          const cfpContent = cfp || "No Call for Papers data found.";
-          const impContent = imp || "No Important Dates data found.";
-
-          
-
-          // // Kiểm tra nếu Acronym đã tồn tại, thêm "_Diff"
-          // let currentAcronym = conference.Acronym;
-          // if (processedAcronyms.has(currentAcronym)) {
-          //   currentAcronym += "_Diff";
-          // }
-
-          // // Cập nhật tập hợp các Acronym đã xử lý
-          // processedAcronyms.add(currentAcronym);
-
-          // Tổng hợp nội dung cuối cùng
-          const combinedContent = `Conference ${conference.Acronym}_${i}:\n` +
-          `${fullText}\nCall for Papers data:\n${cfpContent}` +
-          `\nImportant Dates data:\n${impContent}`;
-
-          // Push dữ liệu vào batch
-          batch.push({
-            conferenceName: conference.Title,
-            conferenceAcronym: conference.Acronym,
-            conferenceIndex: i,
-            conferenceLink: links[i] || "No conference link available.",
-            cfpLink: cfpLink || "No CFP link found.",
-            impLink: impLink || "No IMP link found.",
-            conferenceText: combinedContent.trim(),
-          });
-
-          if (batch.length === numConferences) {
-            const currentBatchIndex = batchIndexRef.current; // Sử dụng giá trị hiện tại của batchIndex
-            batchIndexRef.current++; // Sau đó mới tăng chỉ số
-            
-            const sendBatch = [...batch]; // Tạo bản sao của batch hiện tại
-            allBatches.push(sendBatch); // Thêm vào danh sách tất cả các batch
-
-            batch.length = 0; // Reset batch
-            console.log(`Saved batch ${currentBatchIndex} with ${numConferences} links`); // Kiểm tra batch được lưu
-            
-            const responseText = await saveBatchToFile(sendBatch, currentBatchIndex);
-            allResponsesRef.current += responseText + "\n";
-          }
-        } else {
-          errorDetails = 'Unexpected URL after navigation.';
-          const logMessage = `[${new Date().toISOString()}] Acronym: ${conference.Acronym} | Link: ${links[i]} | Error: ${errorDetails}\n`;
-          await fs.promises.appendFile('./error_access_link_log.txt', logMessage, 'utf8');
-          continue;
-        }
-      } catch (error) {
-        // Lấy timestamp hiện tại
-        const timestamp = new Date().toISOString();
-        // Ghi log lỗi chi tiết vào file khi gặp lỗi không mong muốn
-        const logMessage = `[${timestamp}] Acronym: ${conference.Acronym} | Link: ${links[i]} | Unexpected Error: ${error.message}\n`;
-        await fs.promises.appendFile('./error_access_link_log.txt', logMessage, 'utf8');
-
-        // console.error(logMessage);
-
-      } finally {
-        await page.close();
-      }
+const addAcronymSafely = async (set, acronymIndex) => {
+  let adjustedAcronym = acronymIndex;
+  await acronymMutex.runExclusive(async () => {
+    // Kiểm tra xem Acronym_Index đã tồn tại trong set chưa
+    while (set.has(adjustedAcronym)) {
+      // Nếu đã tồn tại, thêm "_diff" vào phần cuối
+      const indexPart = adjustedAcronym.split('_').pop(); // Lấy phần sau dấu "_"
+      adjustedAcronym = adjustedAcronym.replace(`_${indexPart}`, `_diff_${indexPart}`);
     }
+    // Thêm vào set nếu chưa tồn tại
+    set.add(adjustedAcronym);
+  });
+  return adjustedAcronym;
+};
 
-    return { batch, allBatches, allResponsesRef };
+const saveHTMLContent = async (
+  browserContext,
+  conference,
+  links,
+  allBatches,
+  batch,
+  batchIndexRef,
+  allResponsesRef,
+  numConferences,
+  threshold,
+  existingAcronyms,
+  batchPromises
+) => {
+  try {
+      for (let i = 0; i < links.length; i++) {
+          const page = await browserContext.newPage();
+
+          try {
+              // Timeout nếu trang tải quá lâu
+              const timeoutPromise = new Promise((_, reject) =>
+                setTimeout(() => reject(new Error("Timeout")), 15000)
+              );
+              // Biến lưu lỗi để ghi log chi tiết
+              let errorDetails = null;
+
+              // Lấy timestamp hiện tại
+              const timestamp = new Date().toISOString(); // ISO format (YYYY-MM-DDTHH:mm:ss.sssZ)
+
+              // Đoạn này kiểm tra trạng thái của trang khi tải
+              let isRedirect = false;
+
+              // Đăng ký sự kiện lắng nghe điều hướng trước khi gọi page.goto
+              page.on('framenavigated', (frame) => {
+                if (frame === page.mainFrame() && frame.url() !== links[i]) {
+                  isRedirect = true; // Đánh dấu rằng trang đã điều hướng
+                }
+              });
+
+              const response = await Promise.race([
+                page.goto(links[i], { waitUntil: "domcontentloaded" }),
+                timeoutPromise
+              ]).catch((err) => {
+                errorDetails = err.message; // Ghi lại lỗi timeout hoặc lỗi khác
+              });
+
+               // Kiểm tra phản hồi HTTP
+              if (response && !response.ok()) {
+                errorDetails = `HTTP Error ${response.status()} - ${response.statusText()}`;
+              }
+
+              if (errorDetails) {
+                // Ghi log chi tiết vào file nếu gặp lỗi
+                const logMessage = `[${timestamp}] Acronym: ${conference.Acronym} | Link: ${links[i]} | Error: ${errorDetails}\n`;
+                await fs.promises.appendFile('./error_access_link_log.txt', logMessage, 'utf8');
+
+                continue; // Bỏ qua liên kết này, tiếp tục với liên kết tiếp theo
+              }
+
+              if (isRedirect) {
+                 try {
+                    // Đợi trạng thái tải ổn định
+                    await page.waitForLoadState('networkidle', { timeout: 10000 }); // Đợi thêm để chắc chắn
+                  } catch (err) {
+                    errorDetails = `Timeout or unstable state after redirect: ${err.message}`;
+                    const logMessage = `[${new Date().toISOString()}] Acronym: ${conference.Acronym} | Link: ${links[i]} | Error: ${errorDetails}\n`;
+                    await fs.promises.appendFile('./error_access_link_log.txt', logMessage, 'utf8');
+                    continue;
+                  }
+              }
+
+              // Kiểm tra URL hiện tại
+              if (page.url() === links[i] || isRedirect) {
+                 // // Sử dụng hàm thử lại
+                const htmlContent = await fetchContentWithRetry(page);
+
+
+                // Xử lý nội dung HTML
+                const document = cleanDOM(htmlContent);
+                let fullText = traverseNodes(document.body);
+                fullText = removeExtraEmptyLines(fullText);
+
+                const { fullText: cfp, fullUrl: cfpLink } = await saveHTMLFromCallForPapers(page, conference) || {}; //
+                const { fullText: imp, fullUrl: impLink } = await saveHTMLFromImportantDates(page) || {}; // 
+                // Kiểm tra fallback khi không tìm thấy nội dung
+                const impContent = `Important Dates information:\n${imp}` || "";
+                const cfpContent = ` Call for Papers information:\n${cfp}` || "";
+
+
+                const acronym_index = `${conference.Acronym}_${i}`;
+                // Xử lý Acronym để tránh trùng lặp
+                let adjustedAcronym = await addAcronymSafely(existingAcronyms, acronym_index);
+          
+                 // Tổng hợp nội dung cuối cùng
+                const combinedContent = `Conference ${adjustedAcronym}:\n${fullText}${impContent}${cfpContent}`; //
+
+              
+                let acronym_no_index = adjustedAcronym.substring(0, adjustedAcronym.lastIndexOf('_'));
+                  // Push dữ liệu vào batch
+                batch.push({
+                  conferenceName: conference.Title,
+                  conferenceAcronym: acronym_no_index,
+                  conferenceIndex: i,
+                  conferenceLink: links[i] || "No conference link available.",
+                  cfpLink: cfpLink || "No CFP link found.",
+                  impLink: impLink || "No IMP link found.",
+                  conferenceText: combinedContent.trim(),
+                });
+
+                  if (batch.length === numConferences) {
+                      const currentBatchIndex = batchIndexRef.current;
+                      batchIndexRef.current++;
+
+                      const sendBatch = [...batch]; // Tạo bản sao của batch
+                      allBatches.push(sendBatch); // Thêm vào danh sách tất cả các batch
+                      batch.length = 0; // Reset batch
+                      console.log(`Saved batch ${currentBatchIndex} with ${numConferences} links`); // Kiểm tra batch được lưu
+                      
+                      // Gọi API và lưu file, thêm promise vào danh sách
+                      const batchPromise = saveBatchToFile(sendBatch, currentBatchIndex, threshold)
+                      batchPromises.push(batchPromise);
+
+                      
+                  }
+              } else {
+                 errorDetails = 'Unexpected URL after navigation.';
+                  const logMessage = `[${timestamp}] Acronym: ${conference.Acronym} | Link: ${links[i]} | Error: ${errorDetails}\n`;
+                  await fs.promises.appendFile('./error_access_link_log.txt', logMessage, 'utf8');
+                  continue;
+              }
+          } catch (error) {
+                // Lấy timestamp hiện tại
+                const timestamp = new Date().toISOString();
+                // Ghi log lỗi chi tiết vào file khi gặp lỗi không mong muốn
+              const logMessage = `[${timestamp}] Acronym: ${conference.Acronym} | Link: ${links[i]} | Unexpected Error: ${error.message}\n`;
+              await fs.promises.appendFile('./error_access_link_log.txt', logMessage, 'utf8');
+
+          } finally {
+               // Đóng tab nếu không có thay đổi trong 30 giây
+              await page.close();
+          }
+      }
+      return { batch, allBatches, allResponsesRef, batchPromises };
   } catch (error) {
-    const timestamp = new Date().toISOString();
-    const logMessage = `[${timestamp}] Error in saveHTMLContent: ${error.message}\n`;
-    await fs.promises.appendFile('./error_access_link_log.txt', logMessage, 'utf8');
-    // console.error(logMessage);
-    return { batch, allBatches, allResponsesRef };
+     const timestamp = new Date().toISOString();
+      const logMessage = `[${timestamp}] Error in saveHTMLContent: ${error.message}\n`;
+      await fs.promises.appendFile('./error_access_link_log.txt', logMessage, 'utf8');
+      return { batch, allBatches, allResponsesRef, batchPromises };
   }
 };
 
-const saveBatchToFile = async (batch, batchIndex) => {
+const saveBatchToFile = async (batch, batchIndex, threshold) => {
   try {
-    if (!fs.existsSync("./batches")) {
+      if (!fs.existsSync("./batches")) {
           fs.mkdirSync("./batches");
-    }
-//     if (!fs.existsSync("./batch_token_counts")) {
-//       fs.mkdirSync("./batch_token_counts");
-// }
-    const fileName = `batch_${batchIndex}.txt`;
-    const filePath = `./batches/${fileName}`;
+      }
+      const fileName = `batch_${batchIndex}.txt`;
+      const filePath = `./batches/${fileName}`;
 
-    const numConferences = batch.length;
-    let fileContent = batch
-      .map((entry, index) => `${index + 1}. ${entry.conferenceText}\n\n`)
-      .join("");
+      const numConferences = batch.length;
+      let fileContent = batch
+        .map((entry, index) => `${index + 1}. ${entry.conferenceText}\n\n`)
+        .join("");
 
-    fs.writeFileSync(filePath, fileContent, "utf8");
-    console.log(`Batch ${batchIndex} saved successfully to ${filePath}`);
+      // Thực hiện lưu file và gọi API song song
+      const fileWritePromise = fs.promises.writeFile(filePath, fileContent, "utf8")
+        .then(() => console.log(`Batch ${batchIndex} saved successfully to ${filePath}`));
 
-    const { responseText, metaData } = await callGeminiAPI(fileContent, batchIndex, numConferences);
+      const apiCallPromise = callGeminiAPI(fileContent, batchIndex, numConferences, threshold)
+        .then(({ responseText, metaData }) => {
+          return responseText;
+      });
 
-    // // Ghi metaData vào file
-    // if (metaData) {
-    //   const metaDataFilePath = `./batch_token_counts/token_batch_${batchIndex}.json`;
-    //   await fs.promises.writeFile(metaDataFilePath, JSON.stringify(metaData, null, 2), "utf8");
-    //   console.log(`MetaData for batch ${batchIndex} saved to ${metaDataFilePath}`);
-    // }
+      // trả về 1 Promise cho việc ghi file và call API
+      return Promise.all([fileWritePromise, apiCallPromise]).then(([_, responseText]) => {
+        return responseText;
+      })
 
-    return responseText;
   } catch (error) {
-    console.error("Error saving batch to file:", error);
-    return 0;
+      console.error("Error saving batch to file:", error);
+      return null; // Trả về null khi có lỗi để dễ dàng xử lý
   }
 };
 
@@ -1112,21 +976,99 @@ const semaphore = new Map();
 const acquireLock = async (key) => {
   while (semaphore.get(key)) {
     // Chờ cho đến khi khóa được giải phóng
-    await new Promise((resolve) => setTimeout(resolve, 100));
+    await new Promise((resolve) => setTimeout(resolve, 1000));
   }
-  semaphore.set(key, true); // Đặt khóa
+  // Đặt khóa và cập nhật thời gian của yêu cầu gần nhất
+  semaphore.set(key, true);
 };
 
 const releaseLock = (key) => {
   semaphore.delete(key); // Xóa khóa
 };
 
-const callGeminiAPI = async (batch, batchIndex, numConferences) => {
+const checkResponseCoverage = (batch, batchIndex, responseText) => { 
+  // Trích xuất danh sách hội nghị từ batch
+  const batchConferences = batch
+    .split("\n")
+    .map((line) => {
+      const match = line.match(/^\d+\.\s+Conference\s+(.+):/);
+      return match ? match[1] : null;
+    })
+    .filter(Boolean); // Lọc bỏ null
+
+  // Trích xuất danh sách hội nghị từ response
+  const responseConferences = responseText
+    .split("\n")
+    .map((line) => {
+      const match = line.match(/^\d+\.\s+(?:Information\s+of|Conference)\s+(.+):/);
+      return match ? match[1] : null;
+    })
+    .filter(Boolean); // Lọc bỏ null
+
+  // Kiểm tra số lượng hội nghị khớp giữa batch và response
+  const matchedConferences = batchConferences.filter((conf) =>
+    responseConferences.includes(conf)
+  );
+
+  const matchRatio = matchedConferences.length / batchConferences.length;
+
+  // Kiểm tra điều kiện số lượng khớp
+  const isCountMatch = responseConferences.length === batchConferences.length;
+  const isCoveragePass = matchRatio === 1.0 && isCountMatch;
+
+  const timestamp = new Date().toISOString(); // Lấy timestamp hiện tại
+  const logMessage = `[${timestamp}] ${batchIndex}. Matched ${matchedConferences.length} / ${batchConferences.length} conferences (${(matchRatio * 100).toFixed(2)}%), Count Match: ${isCountMatch}`;
+
+  console.log(logMessage);
+  // Ghi log vào file
+  const logFilePath = './coverage_log.txt';
+  fs.promises.appendFile(logFilePath, logMessage + '\n', 'utf8');
+
+  return { matchRatio, isCoveragePass }; // Trả về tỷ lệ khớp và trạng thái đạt hay không
+};
+
+
+// Đọc prompt từ file CSV
+const csvPath = "./geminiapi.csv";
+const {
+  inputPart1,
+  inputPart2,
+  inputPart3,
+  inputPart4,
+  outputPart1,
+  outputPart2,
+  outputPart3,
+  outputPart4,
+} = await readPromptCSV(csvPath);
+
+const extractLimitedConferences = (responseText, numConferences) => {
+  // Regex để tách từng phần thông tin của hội nghị
+  const conferenceRegex = /(\d+\.\s+(?:Information\s+of|Conference)\s+.+?:)([\s\S]*?)(?=\n\d+\.\s+(?:Information\s+of|Conference)\s+.+?:|$)/g;
+  const matches = [];
+  let match;
+  
+  // Duyệt từng phần thông tin của hội nghị
+  while ((match = conferenceRegex.exec(responseText)) !== null) {
+    const fullConferenceInfo = match[0].trim(); // Toàn bộ thông tin của một hội nghị
+    matches.push(fullConferenceInfo);
+  }
+
+  // Giới hạn số lượng hội nghị
+  const limitedConferences = matches.slice(0, numConferences);
+
+  // Gộp lại thành văn bản
+  return limitedConferences.join("\n\n");
+};
+
+const callGeminiAPI = async (batch, batchIndex, numConferences, threshold) => {
   const lockKey = "gemini_api"; // Khóa chung cho tất cả các request
   let retryCount = 0;
   const maxRetries = 6;
-  const delayBetweenRetries = 25000; // 25 giây
-  const minDelayBetweenRequests = 25000; // 25 giây
+  const delayBetweenRetries = 15000; // 25 giây
+  const minDelayBetweenRequests = 15000; // 25 giây
+
+  let bestResponse = null;
+  let bestCoverage = 0;
 
   while (retryCount < maxRetries) {
     try {
@@ -1146,19 +1088,6 @@ const callGeminiAPI = async (batch, batchIndex, numConferences) => {
       // Cập nhật dấu thời gian ngay khi gửi request
       lastRequestTimestampRef.current = Date.now();
 
-      // Đọc prompt từ file CSV
-      const csvPath = "./geminiapi.csv";
-      const {
-        inputPart1,
-        inputPart2,
-        inputPart3,
-        inputPart4,
-        outputPart1,
-        outputPart2,
-        outputPart3,
-        outputPart4,
-      } = await readPromptCSV(csvPath);
-
       const parts = [
         { text: `${inputPart1}` },
         { text: `${outputPart1}` },
@@ -1174,41 +1103,58 @@ const callGeminiAPI = async (batch, batchIndex, numConferences) => {
 
       // RISE prompt technique
       const systemInstruction = `
-      Role: You are a meticulous data processor responsible for extracting and formatting information about conferences. Your primary goal is to ensure the highest level of accuracy and consistency in the output.
+      Role: You are a highly specialized conference data extraction and formatting expert. Your core responsibility is to meticulously process conference information, capturing all relevant dates, locations, formats, and topics while adhering strictly to the prescribed output format. You must extract and format all provided dates with precision, ensuring no crucial information (dates, location, formats) is omitted and no unnecessary information is included (rank, core, speakers, fee, link, hours, programme). You must avoid including labels for any data that is not available. Your output *must* directly correspond to the data provided in the input_${numConferences}, not merely replicate the examples' output.
 
       Instruction:
-        1. Output Format Enforcement: You must strictly adhere to the exact format demonstrated in the provided few-shot examples. Do not return the output in JSON or any other format.
-        2. Complete and Ordered Output Requirement: You must generate a final output, labeled output_${numConferences}, containing information for all ${numConferences} conferences listed in the input_${numConferences}. The conferences in output_${numConferences} must appear in the precise order they are presented in input_${numConferences}. Do not omit any conference, and do not reorder the conferences.
-        3. Information Source Restriction: For each conference within output_${numConferences}, you must use only the specific data provided for that conference within input_${numConferences}. Do not introduce any external information or data from other conferences. You must not infer, extrapolate or combine data from any other source.
-        4. Conference Data Integrity:  You must ensure that output_${numConferences} reflects the exact name of each conference as given in input_${numConferences} and that the total count of conferences remains at ${numConferences}.  Additionally, the order of conferences within output_${numConferences} must be identical to the order given in input_${numConferences}. You are responsible for data integrity.
+        1. Output Format Enforcement: You must strictly adhere to the specific output *structure* and *style* demonstrated in the few-shot examples, including the labels and spacing. The few-shot examples should guide your formatting. However, the actual conference *content* (conference names, dates, locations, etc.) for each conference must be extracted *solely* from the corresponding conference's data in input_${numConferences}. Do not return the output in JSON or any other format. The output must be in the exact text format shown in the examples, using data solely from input_${numConferences}.
+        2. Complete and Ordered Output Requirement: You must generate a final output, labeled output_${numConferences}, containing information for all ${numConferences} conferences listed in input_${numConferences}. The conferences in output_${numConferences} must appear in the precise order they are presented in input_${numConferences}. Do not omit any conference, and do not reorder the conferences. The number of conferences, names and order in output_${numConferences} must directly match input_${numConferences} (extremely important, must ensure).
+        3. Handle Missing Critical Information: If, for a given conference, *none* of the following information is present in that specific conference's data in input_${numConferences}: conference dates, location, conference format, *or* at least one event date, then output the text: "No information available" for that conference.
+        4. Information Source Restriction: You must use only the specific data provided for that conference within input_${numConferences}. Do not introduce any external information or data from other conferences. You must not infer, extrapolate, or combine data from any other source.
+        5. Conference Data Integrity: You must ensure that output_${numConferences} reflects the correct conference names, the correct number of conferences (${numConferences}), and the correct order of conferences. All extracted data for a conference must be *solely* from the data provided for that *specific* conference in input_${numConferences}. There must be a one to one relationship between input_${numConferences} conference data and the extracted data in output_${numConferences} for each conference.
 
-      Situation: You are provided with a list of ${numConferences} conferences in input_${numConferences}. Your task is to process this data and present it according to the specific instructions provided above, referencing the output format demonstrated in the provided few-shot examples.
-      `
+      Situation: You are provided with a list of ${numConferences} conferences in input_${numConferences}, each potentially containing various dates, location, type (format), and topic information. Your task is to extract all the relevant details that are available and present them in a strict, formatted output, following the *structure* and *style* of the few-shot examples. You must pay strict attention to date formatting, date labeling, the output structure, and only outputting information that is present and adheres to the required format. The actual content you output must directly correspond with input_${numConferences} content for that conference. Handle cases with missing information as described above and in few-shot examples.
+      `;
+
+      // console.log(systemInstruction);
 
       const model = genAI.getGenerativeModel({
         model: "gemini-1.5-flash-latest",
         systemInstruction: systemInstruction,
       });
 
-
+      console.log(`Sended request ${batchIndex} !`)
       const response = await model.generateContent({
         contents: [{ role: "user", parts }],
         generationConfig,
       });
 
+
       const responseText = response.response.text();
       const metaData = response.response.usageMetadata;
 
-      if (!fs.existsSync(`./responses_${numConferences}`)) {
-        fs.mkdirSync(`./responses_${numConferences}`);
+      // Kiểm tra response coverage
+      const { matchRatio, isCoveragePass } = checkResponseCoverage(batch, batchIndex, responseText);
+      if (matchRatio > bestCoverage) {
+        bestCoverage = matchRatio;
+        bestResponse = { responseText, metaData };
       }
-      const response_outputPath = `./responses_${numConferences}/result_${batchIndex}_${numConferences}.txt`;
-      await fs.promises.writeFile(response_outputPath, responseText, "utf8");
 
-      // Giải phóng khóa
-      releaseLock(lockKey);
+      if (isCoveragePass) {
+        // Lưu response nếu đạt yêu cầu
+        if (!fs.existsSync(`./responses`)) {
+          fs.mkdirSync(`./responses`);
+        }
+        const response_outputPath = `./responses/result_${batchIndex}_${numConferences}.txt`;
+        await fs.promises.writeFile(response_outputPath, responseText, "utf8");
 
-      return { responseText, metaData }; // Trả về cả responseText và metaData
+        // Giải phóng khóa
+        releaseLock(lockKey);
+
+        return bestResponse; // Trả về phản hồi tốt nhất
+      }
+
+
+      throw new Error(`Response coverage below ${threshold}% threshold. Retrying...`);
 
     } catch (error) {
       // Giải phóng khóa nếu lỗi xảy ra
@@ -1235,20 +1181,115 @@ const callGeminiAPI = async (batch, batchIndex, numConferences) => {
         const finalErrorMessage = `Failed to process batch #${batchIndex} after ${maxRetries} retries.`;
         console.error(finalErrorMessage);
         await logErrorToFile(finalErrorMessage);
-        return { responseText: 0, metaData: null };
+
+        // Nếu có phản hồi tốt nhất, lưu nó
+        if (bestResponse) {
+          const filteredResponseText = extractLimitedConferences(bestResponse.responseText, numConferences);
+
+
+          if (!fs.existsSync(`./responses`)) {
+            fs.mkdirSync(`./responses`);
+          }
+          const bestResponsePath = `./responses/result_${batchIndex}_${numConferences}.txt`;
+          await fs.promises.writeFile(bestResponsePath, filteredResponseText, "utf8");
+          const saveBestResponseMessage = `Saved best response for batch #${batchIndex} with coverage ${(bestCoverage * 100).toFixed(2)}%.`;
+          await logErrorToFile(saveBestResponseMessage);
+          return { ...bestResponse, responseText: filteredResponseText };
+        } else {
+          return { responseText: "", metaData: null };
+        }
+
       }
     }
-  }
+  }   
 };
 
+// Helper function to determine if a link is prioritized
+function isPrioritizedLink(conferenceName, conferenceAcronym, conferenceLink, conferenceText) {
+  if (!conferenceAcronym || !conferenceLink || !conferenceText) {
+    // console.log(`[PRIORITIZED LINK] Invalid input parameters. Returning false.`);
+    return false; // Ensure no undefined is returned
+  }
+
+  // Check if the acronym exists in the link
+  const acronymRegex = new RegExp(`(?<=\\W|\\d|^)${conferenceAcronym}(?=\\W|\\d|$|conference)`, 'i');
+  const isAcronymInLink = acronymRegex.test(conferenceLink);
+
+  if (isAcronymInLink) {
+    // console.log(`[PRIORITIZED LINK] Acronym found in link: ${conferenceLink}`);
+    return true;
+  }
+
+  // Check if the conference name matches in the conference text
+  const words = conferenceName.split(/\s+/); // Split conferenceName into words
+  const pattern = words.map(word => `\\b${word}\\b`).join('\\d*'); // Regex with digits between words
+  const nameRegex = new RegExp(pattern, 'i'); // Create regex (case insensitive)
+
+  const nameMatch = nameRegex.test(conferenceText);
+  if (nameMatch) {
+    // console.log(`[PRIORITIZED LINK] Conference name matches in text: ${conferenceName}`);
+    return true;
+  }
+
+  return false; // No matches found
+}
+
+function shouldUpdateMain(existingData, currentData, isAcronymInLink, isMainPriority) {
+  // console.log(`[CHECK] Should update main: isAcronymInLink=${isAcronymInLink}, isMainPriority=${isMainPriority}`);
+
+  // Nếu link mới là Priority và Main hiện tại không phải Priority, cho phép cập nhật ngay
+  if (!isMainPriority && isAcronymInLink) {
+    // console.log(`[PRIORITY OVERRIDE] Main is not priority, and new link is priority. Update allowed.`);
+    return true;
+  }
+
+  // Nếu Main hiện tại là Priority Main và link mới không phải Priority, không được phép cập nhật
+  if (isMainPriority && !isAcronymInLink) {
+    // console.log(`[CHECK] Main is priority, new link is not prioritized. Update not allowed.`);
+    return false;
+  }
+
+  // Nếu link mới là Priority, kiểm tra xem thông tin có tốt hơn không
+  if (isAcronymInLink) {
+    // console.log(`[PRIORITIZED LINK] Acronym found in link: Update allowed`);
+    if (currentData.year === existingData.year) {
+      return (
+        currentData.numLines > existingData.numLines ||
+        (currentData.numLines === existingData.numLines && currentData.nonNullFields > existingData.nonNullFields)
+      );
+    }
+    return currentData.year >= existingData.year;
+  }
+
+  // Nếu Main hiện tại không phải Priority, áp dụng tiêu chí cập nhật thông thường
+  return (
+    currentData.year > existingData.year ||
+    (currentData.year === existingData.year &&
+      (currentData.numLines > existingData.numLines ||
+        (currentData.numLines === existingData.numLines && currentData.nonNullFields > existingData.nonNullFields)))
+  );
+}
+
+// Process all batches to determine main links
 async function determineMainLinksWithResponses(allBatches, allResponses) {
+
+
   try {
     const conferenceMap = {};
     const responseLines = allResponses.split("\n");
     let currentKey = null;
     let currentResponse = [];
 
-    const regex = /^\d+\.\s+Information\s+of\s+(.+):/;
+    // console.log(`[DEBUG] All batches size:`, allBatches.length);
+    // console.log(`[DEBUG] All responses sample:`, responseLines.slice(0, 10));
+    // console.log(`[DEBUG] allBatches:`, JSON.stringify(allBatches, null, 2));
+    // console.log(`[DEBUG] allResponses:`, allResponses.slice(0, 100)); // Hiển thị 100 ký tự đầu
+    
+
+    const regex = /^\d+\.\s+(?:Information\s+of|Conference)\s+(.+):/;
+
+    // const regex = /^\d+\.\s+Information\s+of\s+(.+):/;
+
 
     // Helper function to add or update conference map
     function addOrUpdateConferenceMap(conferenceMap, currentKey, currentResponse) {
@@ -1259,34 +1300,38 @@ async function determineMainLinksWithResponses(allBatches, allResponses) {
         nonNullFields: countNonNullFields(filteredResponse),
         year: extractConferenceYear(filteredResponse),
       };
+      // console.log(`Adding/Updating: ${currentKey}`, currentData);
 
       if (!conferenceMap[currentKey]) {
-        // Add new entry
         conferenceMap[currentKey] = currentData;
+        // console.log(`[NEW ENTRY] Added for ${currentKey}`);
       } else {
         const existingData = conferenceMap[currentKey];
-        // Update if current data is better based on criteria
+        // console.log(`[EXISTING DATA] For ${currentKey}:`, existingData);
         if (
           currentData.year > existingData.year ||
           (currentData.year === existingData.year &&
             (currentData.numLines > existingData.numLines ||
-              (currentData.numLines === existingData.numLines &&
-                currentData.nonNullFields > existingData.nonNullFields)))
+              (currentData.numLines === existingData.numLines && currentData.nonNullFields > existingData.nonNullFields)))
         ) {
           conferenceMap[currentKey] = currentData;
+          // console.log(`[UPDATED ENTRY] Updated ${currentKey} with better data`);
+        } else {
+          // console.log(`[NO UPDATE] ${currentKey} not updated (existing data is better)`);
         }
       }
     }
 
-    // Parse response lines to build conference map
+
     responseLines.forEach((line) => {
       const match = line.match(regex);
       if (match) {
         if (currentKey && currentResponse.length > 0) {
           addOrUpdateConferenceMap(conferenceMap, currentKey, currentResponse);
         }
-        currentKey = match[1]; // Update key
+        currentKey = match[1];
         currentResponse = [];
+        // console.log(`[NEW KEY DETECTED] ${currentKey}`);
       } else if (currentKey) {
         currentResponse.push(line.trim());
       }
@@ -1296,103 +1341,91 @@ async function determineMainLinksWithResponses(allBatches, allResponses) {
       addOrUpdateConferenceMap(conferenceMap, currentKey, currentResponse);
     }
 
+
     const finalResults = [];
 
-    // Helper function to determine if a link is prioritized
-    function isPrioritizedLink(conferenceName, conferenceAcronym, conferenceLink, conferenceText) {
-      // const acronymRegex = new RegExp(conferenceAcronym, "i");
-      const acronymRegex = new RegExp(`(?<=\\W|\\d|^)${conferenceAcronym}(?=\\W|\\d|$)`, 'i');
-      if (acronymRegex.test(conferenceLink)) {
-        return true;
-      }
-    
-      // Kiểm tra conferenceName trong conferenceText
-      const words = conferenceName.split(/\s+/); // Tách conferenceName thành từng từ
-      const pattern = words.map(word => `\\b${word}\\b`).join('\\d*'); // Regex với số xen giữa các từ
-      const nameRegex = new RegExp(pattern, 'i'); // Tạo regex (không phân biệt hoa thường)
-    
-      return nameRegex.test(conferenceText);
-    }
-
-    // Process all batches to determine main links
     allBatches.flat().forEach((conference) => {
-      const { conferenceName, conferenceAcronym, conferenceIndex, conferenceLink, conferenceText} = conference;
+      const { conferenceName, conferenceAcronym, conferenceIndex, conferenceLink, conferenceText } = conference;
       const conferenceKey = `${conferenceAcronym}_${conferenceIndex}`;
+      const currentMainKey = `${conferenceAcronym}_main`;
+
+      // console.log(`[DEBUG] conferenceKey: ${conferenceKey}`);
+      // console.log(`[DEBUG] conferenceMap keys:`, Object.keys(conferenceMap));
+
 
       if (conferenceMap[conferenceKey]) {
-        const currentMainKey = `${conferenceAcronym}_main`;
         const currentYear = conferenceMap[conferenceKey].year || 0;
         const currentNumLines = conferenceMap[conferenceKey].numLines;
         const currentNonNullFields = conferenceMap[conferenceKey].nonNullFields;
 
-        // Step 1: Prioritize conferences with Acronym in the link
-        const isAcronymInLink = isPrioritizedLink(conferenceName, conferenceAcronym, conferenceLink, conferenceText);
+        // console.log(`[PROCESSING] ${conferenceKey}`, { currentYear, currentNumLines, currentNonNullFields });
 
-        if (isAcronymInLink) {
-          if (!conferenceMap[currentMainKey] || !conferenceMap[currentMainKey].priority) {
-            // Mark as prioritized if Acronym found in the link
-            conferenceMap[currentMainKey] = {
-              ...conferenceMap[conferenceKey],
-              data: conference,
-              priority: true, // Mark as prioritized
-            };
-          }
-        } else {
-          // Step 2: If Acronym is not found, check for other conferences that may have Acronym in link
-          // Step 2: Check if no Acronym matches in any link
-          const hasAcronymInAnyLink = allBatches.flat().some((batchConference) =>
-            isPrioritizedLink(batchConference.conferenceName, batchConference.conferenceAcronym, batchConference.conferenceLink, batchConference.conferenceText)
+        if (!conferenceMap[currentMainKey]) { // Initialize main if it doesn't exist
+          
+          // Check if the initialized main is a prioritized link
+          const initializedMainPriority = isPrioritizedLink(
+            conferenceName,
+            conferenceAcronym,
+            conferenceLink,
+            conferenceText
           );
 
-          if (!hasAcronymInAnyLink) {
-            // No conferences have Acronym in link, continue with the usual comparison
-            if (!conferenceMap[currentMainKey]) {
-              conferenceMap[currentMainKey] = {
-                ...conferenceMap[conferenceKey],
-                data: conference,
-                priority: false, // Not prioritized
-              };
+          // Initialize main if it doesn't exist
+          conferenceMap[currentMainKey] = {
+            ...conferenceMap[conferenceKey],
+            data: conference,
+            isPriority: initializedMainPriority // Lưu trạng thái isPriority
+          };         
+
+
+          // console.log(`[INITIALIZED MAIN] ${currentMainKey} initialized with first valid data (isPriority=${initializedMainPriority})`);
+
+        } else { // Compare with existing main data
+          const existingData = conferenceMap[currentMainKey] || {};
+          const isMainPriority = existingData.isPriority || false; // Lấy trạng thái isPriority từ Main đã lưu
+
+          const isAcronymInLink = isPrioritizedLink(
+            conferenceName,
+            conferenceAcronym,
+            conferenceLink,
+            conferenceText
+          );
+
+          if (shouldUpdateMain(
+            existingData,
+            { year: currentYear, numLines: currentNumLines, nonNullFields: currentNonNullFields },
+            isAcronymInLink,
+            isMainPriority
+          )) {
+            conferenceMap[currentMainKey] = { 
+              ...conferenceMap[conferenceKey], 
+              data: conference,
+              isPriority: isAcronymInLink // Cập nhật isPriority nếu có thay đổi
+            };
+            // console.log(`[UPDATED MAIN] ${currentMainKey} updated with better data`);
           } else {
-            const existingData = conferenceMap[currentMainKey];
-            // Continue comparing based on year, number of lines, and non-null fields
-            if (
-              currentYear > existingData.year ||
-              (currentYear === existingData.year &&
-                (currentNumLines > existingData.numLines ||
-                  (currentNumLines === existingData.numLines &&
-                    currentNonNullFields > existingData.nonNullFields)))
-            ) {
-              conferenceMap[currentMainKey] = {
-                ...conferenceMap[conferenceKey],
-                data: conference,
-                priority: false, // Not prioritized
-              };
-            }
-          }
+            // console.log(`[NO UPDATE MAIN] ${currentMainKey} not updated (existing data is better)`);
           }
         }
       }
     });
 
-    // Collect results
+
     for (const key in conferenceMap) {
       if (key.endsWith("_main")) {
         const { data, response } = conferenceMap[key];
-        finalResults.push({
-          ...data,
-          response,
-        });
+        finalResults.push({ ...data, response });
       }
     }
 
-    // Save results to a JSON file
     const outputFilePath = "./mainLinksWithResponses.json";
     await fs.promises.writeFile(outputFilePath, JSON.stringify(finalResults, null, 2), "utf8");
-    console.log(`Final results with responses have been saved to ${outputFilePath}`);
+    console.log(`[OUTPUT] Final results saved to ${outputFilePath}`);
 
     return finalResults;
+
   } catch (error) {
-    console.error("Error in determining main links with responses:", error.message);
+    console.error(`[ERROR] In determining main links with responses:`, error.message);
     return [];
   }
 }
@@ -1522,10 +1555,11 @@ const processDataForDisplay = (data) => {
   }
 };
 
-const crawlFromCorePortal = async (conferenceData) => {
-  const browser = await playwright.chromium.launch({
+async function crawlFromCorePortal() {
+  const browser = await chromium.launch({
     channel: 'msedge',
     headless: true,
+    ignoreHTTPSErrors: true,
     args: [
       "--disable-notifications",
       "--disable-geolocation",
@@ -1534,6 +1568,8 @@ const crawlFromCorePortal = async (conferenceData) => {
       "--disable-setuid-sandbox",
       "--disable-gpu",
       "--blink-settings=imagesEnabled=false",
+      "--ignore-certificate-errors"
+
     ],
   });
 
@@ -1541,6 +1577,7 @@ const crawlFromCorePortal = async (conferenceData) => {
     permissions: [],
     viewport: { width: 1280, height: 720 },
     ignoreHTTPSErrors: true,
+    extraHTTPHeaders: { 'Upgrade-Insecure-Requests': '1' },
     userAgent:
       "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
   });
@@ -1562,15 +1599,19 @@ const crawlFromCorePortal = async (conferenceData) => {
     }
   });
 
-  const numConferences = 20;
+  const numConferences = 5;
+  const threshold = 0.95;
+  const existingAcronyms = new Set(); // Biến toàn cục hoặc ở cấp cao hơn
+
   const allBatches = [];
   const allResponsesRef = { current: "" };
   const batch = [];
   const batchIndexRef = { current: 1 };
+  const batchPromises = []; // Danh sách các promise của batch
+
 
   try {
     console.log("Starting crawler...");
-    // Example usag
     const allConferences = await getConferenceList(browserContext);
 
     // Duyệt qua từng conference
@@ -1580,9 +1621,12 @@ const crawlFromCorePortal = async (conferenceData) => {
         const links = await searchConferenceLinks(browserContext, conference);
 
         if (links.length > 0) {
-          const { batch: updatedBatch, allBatches: updatedBatches } =
-            await saveHTMLContent(browserContext, conference, links, allBatches, batch, batchIndexRef, allResponsesRef, numConferences);
-
+          const {
+            batch: updatedBatch,
+            allBatches: updatedBatches,
+          } = await saveHTMLContent(browserContext, conference, links, allBatches, 
+            batch, batchIndexRef, allResponsesRef, numConferences, threshold, existingAcronyms, batchPromises);
+          
           batch.length = updatedBatch.length;
           allBatches.splice(0, allBatches.length, ...updatedBatches);
         } else {
@@ -1593,15 +1637,27 @@ const crawlFromCorePortal = async (conferenceData) => {
 
     await Promise.all(tasks);
 
-    // Xử lý batch cuối cùng
-    if (batch.length > 0) {
+     // Xử lý batch cuối cùng
+     if (batch.length > 0) {
       const currentBatchIndex = batchIndexRef.current++;
       const sendBatch = [...batch]; // Tạo bản sao batch
       allBatches.push(sendBatch); // Thêm vào danh sách tất cả các batch
-      const responseText = await saveBatchToFile(sendBatch, currentBatchIndex);
-      allResponsesRef.current += responseText + "\n";
+        const batchPromise = saveBatchToFile(sendBatch, currentBatchIndex, threshold);
+        batchPromises.push(batchPromise);
+
     }
     
+    // Chờ tất cả các promise của batch hoàn thành
+    const allBatchResponses = await Promise.allSettled(batchPromises);
+
+    // Lọc ra các response text từ các promise đã hoàn thành
+    const responseTextArray = allBatchResponses.filter(result => result.status === 'fulfilled')
+        .map(result => result.value)
+        .filter(response => response); // Lọc bỏ null hoặc undefined
+
+      // Kết hợp các responseText thành một chuỗi
+    allResponsesRef.current = responseTextArray.join("\n");
+
 
     console.log("Crawler finished.");
 
@@ -1638,10 +1694,6 @@ const crawlFromCorePortal = async (conferenceData) => {
       return 0;
     }
 
-    // console.log("All works finished.")
-
-
-
   } catch (error) {
     console.error("Error during crawling:", error);
   } finally {
@@ -1649,6 +1701,4 @@ const crawlFromCorePortal = async (conferenceData) => {
   }
 };
 
-module.exports = {
-    crawlFromCorePortal
-}
+export { crawlFromCorePortal };

@@ -1,10 +1,9 @@
-const axios = require('axios');
-
+import axios from "axios";
 const sendConferenceData = async (conferenceData) => {
     console.log("Data being sent:", conferenceData);
 
     try {
-        const response = await axios.post('http://172.188.50.15:8080/crawl_from_links', conferenceData, {
+        const response = await axios.post('http://172.188.50.15:8080/upload', conferenceData, {
             headers: {
                 'Content-Type': 'application/json',
                 'from-server': 'true'
@@ -24,21 +23,19 @@ const sampleData =
         {
           "Title":"ACM Conference on Embedded Networked Sensor Systems",
           "Acronym":"SENSYS",
-          "Link": "https://sensys.acm.org/2025/"
         },
         {
           "Title":"ACM Conference on Applications, Technologies, Architectures, and Protocols for Computer Communication",
           "Acronym":"SIGCOMM",
-          "Link": "https://conferences.sigcomm.org/sigcomm/2025/",
         },
-        // {
-        //   "Title":"ACM Information Technology Education",
-        //   "Acronym":"SIGITE"
-        // },
-        // {
-        //   "Title":"ACM International Conference on Knowledge Discovery and Data Mining",
-        //   "Acronym":"KDD"
-        // }
+        {
+          "Title":"ACM Information Technology Education",
+          "Acronym":"SIGITE"
+        },
+        {
+          "Title":"ACM International Conference on Knowledge Discovery and Data Mining",
+          "Acronym":"KDD"
+        }
       ];
 
 // console.log("Data being sent:", sampleData);
