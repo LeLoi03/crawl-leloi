@@ -1620,8 +1620,9 @@ async function crawlFromLinks(linkData) {
     const tasks = allConferences.map((conference) =>
       queue.add(async () => {
         console.log(`Crawling data for conference: ${conference.Acronym}`);
-        const links = await searchConferenceLinks(browserContext, conference);
-
+        const links = [
+          conference.Link
+        ];
         if (links.length > 0) {
           const {
             batch: updatedBatch,
